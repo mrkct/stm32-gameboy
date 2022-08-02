@@ -13,7 +13,7 @@ struct priv_t
 
 	/* Colour palette for each BG, OBJ0, and OBJ1. */
 	uint16_t selected_palette[3][4];
-	uint16_t fb[LCD_HEIGHT][LCD_WIDTH];
+	uint16_t fb[LCD_HEIGHT * LCD_WIDTH];
 };
 
 static uint8_t Hook_ReadRom(struct gb_s *gb, const uint_fast32_t addr)
@@ -61,9 +61,10 @@ void Hook_DrawDisplayLine(struct gb_s *gb, const uint8_t pixels[160], const uint
 {
 	struct priv_t *priv = gb->direct.priv;
 
+	uint16_t *l = &priv->fb[LCD_WIDTH * line];
 	for(unsigned int x = 0; x < LCD_WIDTH; x++)
 	{
-		priv->fb[line][x] = priv->selected_palette
+		l[x] = priv->selected_palette
 				    [(pixels[x] & LCD_PALETTE_ALL) >> 4]
 				    [pixels[x] & 3];
 	}
@@ -239,7 +240,7 @@ void auto_assign_palette(struct priv_t *priv, uint8_t game_checksum)
 	}
 }
 
-void StartEmulator(struct ILI9341_t *display, uint8_t *rom, uint8_t *savefile)
+void StartEmulator(struct ILI9341_t *display, uint8_t const *rom, uint8_t *savefile)
 {
 	printf("Initializing Emulator\n");
 
@@ -288,6 +289,7 @@ void StartEmulator(struct ILI9341_t *display, uint8_t *rom, uint8_t *savefile)
 
 	while(1)
 	{
+		ILI9341_StepProgressBar(display);
 		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 		int delay;
 		static unsigned int rtc_timer = 0;

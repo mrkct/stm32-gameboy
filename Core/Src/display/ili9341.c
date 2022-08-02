@@ -337,7 +337,7 @@ void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[], uint
 	CS_ACTIVE(ili);
 	ILI9341_PrepareDataPinsForWriting(ili);
 
-	ILI9341_SetDrawingArea(ili, 0, width, 0, height);
+	ILI9341_SetDrawingArea(ili, 0, width - 1, 0, height - 1);
 	ILI9341_WriteCommand(ili, CMD_MEMORY_WRITE);
 	for (int i = 0; i < width * height; i++) {
 		ILI9341_WriteData(ili, (uint8_t) (framebuffer[i] >> 8));
@@ -347,20 +347,29 @@ void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[], uint
 	CS_IDLE(ili);
 }
 
-void ILI9341_Test(struct ILI9341_t *ili, uint16_t color)
+void ILI9341_StepProgressBar(struct ILI9341_t *ili)
 {
-  CS_ACTIVE(ili);
-  ILI9341_PrepareDataPinsForWriting(ili);
+	static uint16_t color = 0xf800;
+	static uint16_t xpos = 0;
 
-  ILI9341_SetDrawingArea(ili, 0, 120, 0, 120);
+	CS_ACTIVE(ili);
+	ILI9341_PrepareDataPinsForWriting(ili);
 
-  ILI9341_WriteCommand(ili, CMD_MEMORY_WRITE);
-  for (int i = 0; i < 120 * 120; i++) {
-    ILI9341_WriteData(ili, (uint8_t) (color >> 8));
-    ILI9341_WriteData(ili, (uint8_t) color);
-  }
+	ILI9341_SetDrawingArea(ili, xpos, xpos + 3, 300, 320);
+	ILI9341_WriteCommand(ili, CMD_MEMORY_WRITE);
+	for (int i = 0; i < 20 * 3; i++) {
+		ILI9341_WriteData(ili, (uint8_t) color);
+		ILI9341_WriteData(ili, (uint8_t) color);
+	}
 
-  CS_IDLE(ili);
+	CS_IDLE(ili);
+
+	xpos += 3;
+	if (xpos > 200) {
+		xpos = 0;
+		color = ~color;
+		color += 8;
+	}
 }
 
 uint32_t ILI9341_ReadID(struct ILI9341_t *ili)

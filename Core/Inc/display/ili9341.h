@@ -40,7 +40,7 @@ void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[], uint
 
 void ILI9341_SetDrawingArea(struct ILI9341_t *ili, uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2);
 
-void ILI9341_Test(struct ILI9341_t *ili, uint16_t color);
+void ILI9341_StepProgressBar(struct ILI9341_t *ili);
 
 static inline uint16_t ILI9341_RgbTo565(uint8_t r, uint8_t g, uint8_t b) {
   return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
