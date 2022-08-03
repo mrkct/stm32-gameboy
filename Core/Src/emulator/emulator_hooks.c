@@ -25,13 +25,13 @@ static uint8_t Hook_ReadCartridgeRam(struct gb_s *gb,
   return p->cart_ram[addr];
 }
 
-void Hook_WriteCartridgeRam(struct gb_s *gb, const uint_fast32_t addr,
+static void Hook_WriteCartridgeRam(struct gb_s *gb, const uint_fast32_t addr,
                             const uint8_t val) {
   const struct priv_t *const p = gb->direct.priv;
   p->cart_ram[addr] = val;
 }
 
-void Hook_ReportEmulationError(struct gb_s *gb, const enum gb_error_e gb_err,
+static void Hook_ReportEmulationError(struct gb_s *gb, const enum gb_error_e gb_err,
                                const uint16_t val) {
   switch (gb_err) {
   case GB_INVALID_OPCODE:
@@ -51,7 +51,7 @@ void Hook_ReportEmulationError(struct gb_s *gb, const enum gb_error_e gb_err,
   printf("Error. Press q to exit, or any other key to continue.");
 }
 
-void Hook_DrawDisplayLine(struct gb_s *gb, const uint8_t pixels[160],
+static void Hook_DrawDisplayLine(struct gb_s *gb, const uint8_t pixels[160],
                           const uint_fast8_t line) {
   struct priv_t *priv = gb->direct.priv;
 
@@ -62,7 +62,7 @@ void Hook_DrawDisplayLine(struct gb_s *gb, const uint8_t pixels[160],
   }
 }
 
-void auto_assign_palette(struct priv_t *priv, uint8_t game_checksum) {
+static void auto_assign_palette(struct priv_t *priv, uint8_t game_checksum) {
   size_t palette_bytes = 3 * 4 * sizeof(uint16_t);
 
   switch (game_checksum) {
@@ -207,6 +207,30 @@ void auto_assign_palette(struct priv_t *priv, uint8_t game_checksum) {
   }
 }
 
+static void ReadGamepadStatus(struct gb_s *gb)
+{
+#define BUTTON_A		GPIOA, GPIO_PIN_8
+#define BUTTON_B		GPIOA, GPIO_PIN_9
+#define BUTTON_START	GPIOA, GPIO_PIN_10
+#define BUTTON_SELECT	GPIOA, GPIO_PIN_11
+#define BUTTON_LEFT		GPIOA, GPIO_PIN_12
+#define BUTTON_UP		GPIOA, GPIO_PIN_15
+#define BUTTON_RIGHT	GPIOB, GPIO_PIN_3
+#define BUTTON_DOWN		GPIOB, GPIO_PIN_4
+
+#define READ_BUTTON(b)	HAL_GPIO_ReadPin(b) == GPIO_PIN_SET ? 1 : 0
+
+	gb->direct.joypad_bits.a = READ_BUTTON(BUTTON_A);
+	gb->direct.joypad_bits.b = READ_BUTTON(BUTTON_B);
+	gb->direct.joypad_bits.start = READ_BUTTON(BUTTON_START);
+	gb->direct.joypad_bits.select = READ_BUTTON(BUTTON_SELECT);
+	gb->direct.joypad_bits.left = READ_BUTTON(BUTTON_LEFT);
+	gb->direct.joypad_bits.up = READ_BUTTON(BUTTON_UP);
+	gb->direct.joypad_bits.right = READ_BUTTON(BUTTON_RIGHT);
+	gb->direct.joypad_bits.down = READ_BUTTON(BUTTON_DOWN);
+
+}
+
 void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
                    uint8_t *savefile, struct tm datetime) {
   struct gb_s gb;
@@ -255,6 +279,8 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
     static unsigned int rtc_timer = 0;
 
     old_ticks = HAL_GetTick();
+
+    ReadGamepadStatus(&gb);
 
     // TODO: Read buttons and set 'gb.direct.joypad_bits.XXXX'
     if (old_ticks > 10000)
