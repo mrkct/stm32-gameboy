@@ -300,6 +300,8 @@ void ILI9341_SetDrawingArea(struct ILI9341_t *ili, uint16_t x1, uint16_t x2,
                                       (uint8_t)(y2 >> 8), (uint8_t)y2 & 0xff);
 }
 
+extern DMA_HandleTypeDef hdma_memtomem_dma2_stream0;
+
 void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[],
                              uint16_t width, uint16_t height) {
   CS_ACTIVE(ili);
@@ -307,9 +309,18 @@ void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[],
 
   ILI9341_SetDrawingArea(ili, 0, width - 1, 0, height - 1);
   ILI9341_WriteCommand(ili, CMD_MEMORY_WRITE);
-  for (int i = 0; i < width * height; i++) {
-    ILI9341_WriteData(ili, (uint8_t)(framebuffer[i] >> 8));
-    ILI9341_WriteData(ili, (uint8_t)framebuffer[i]);
+
+  uint8_t *fb = (uint8_t*) framebuffer;
+
+  for (int i = 0; i < 2 * width * height; i++) {
+	  {
+	  	CD_DATA(ili);
+
+	  	WR_ACTIVE(ili);
+	  	// WARN: This assumes that D0 -> PA0, D1 -> PA1, D2 -> PA2 ... D7 -> PA7
+	  	GPIOA->BSRR = ( (uint32_t) (~fb[i]) << 16) | fb[i];
+	  	WR_IDLE(ili);
+	  }
   }
 
   CS_IDLE(ili);

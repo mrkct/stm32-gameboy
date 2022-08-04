@@ -104,14 +104,14 @@ int main(void)
 #define LCD_RD		.port = GPIOB, .pin = GPIO_PIN_5
 #define LCD_RESET	.port = GPIOB, .pin = GPIO_PIN_9
 
-#define LCD_D0		.port = GPIOA, .pin = GPIO_PIN_6
-#define LCD_D1		.port = GPIOA, .pin = GPIO_PIN_7
-#define LCD_D2		.port = GPIOA, .pin = GPIO_PIN_0
-#define LCD_D3		.port = GPIOA, .pin = GPIO_PIN_1
-#define LCD_D4		.port = GPIOA, .pin = GPIO_PIN_2
-#define LCD_D5		.port = GPIOA, .pin = GPIO_PIN_3
-#define LCD_D6		.port = GPIOA, .pin = GPIO_PIN_4
-#define LCD_D7		.port = GPIOA, .pin = GPIO_PIN_5
+#define LCD_D0		.port = GPIOA, .pin = GPIO_PIN_0
+#define LCD_D1		.port = GPIOA, .pin = GPIO_PIN_1
+#define LCD_D2		.port = GPIOA, .pin = GPIO_PIN_2
+#define LCD_D3		.port = GPIOA, .pin = GPIO_PIN_3
+#define LCD_D4		.port = GPIOA, .pin = GPIO_PIN_4
+#define LCD_D5		.port = GPIOA, .pin = GPIO_PIN_5
+#define LCD_D6		.port = GPIOA, .pin = GPIO_PIN_6
+#define LCD_D7		.port = GPIOA, .pin = GPIO_PIN_7
 
   struct ILI9341_t lcd;
   ILI9341_Init(
@@ -143,16 +143,15 @@ int main(void)
 	NULL,
 	(struct tm) {
 	  .tm_sec = time.Seconds,
-	.tm_min = time.Minutes,
-.tm_hour = time.Hours,
-.tm_mday = date.Date,
-.tm_mon = date.Month,
-.tm_year = date.Year,
-.tm_wday = date.WeekDay,
-.tm_yday = 0,
-.tm_isdst = 0
+	  .tm_min = time.Minutes,
+      .tm_hour = time.Hours,
+      .tm_mday = date.Date,
+      .tm_mon = date.Month,
+      .tm_year = date.Year,
+      .tm_wday = date.WeekDay,
+      .tm_yday = 0,
+      .tm_isdst = 0
   });
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -186,7 +185,12 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.LSIState = RCC_LSI_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 100;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -195,12 +199,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -346,20 +350,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PA8 PA9 PA10 PA11
-                           PA12 PA15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
-                          |GPIO_PIN_12|GPIO_PIN_15;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PB3 PB4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB5 PB6 PB7 PB8
                            PB9 */

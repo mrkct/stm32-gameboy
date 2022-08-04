@@ -55,10 +55,10 @@ static void Hook_DrawDisplayLine(struct gb_s *gb, const uint8_t pixels[160],
                           const uint_fast8_t line) {
   struct priv_t *priv = gb->direct.priv;
 
+
   uint16_t *l = &priv->fb[LCD_WIDTH * line];
   for (unsigned int x = 0; x < LCD_WIDTH; x++) {
-    l[x] = priv->selected_palette[(pixels[x] & LCD_PALETTE_ALL) >> 4]
-                                 [pixels[x] & 3];
+    l[x] = priv->selected_palette[(pixels[x] & LCD_PALETTE_ALL) >> 4][pixels[x] & 3];
   }
 }
 
@@ -239,20 +239,20 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
       gb_init(&gb, &Hook_ReadRom, &Hook_ReadCartridgeRam,
               &Hook_WriteCartridgeRam, &Hook_ReportEmulationError, &priv);
   switch (gb_ret) {
-  case GB_INIT_NO_ERROR:
-    break;
+  	  case GB_INIT_NO_ERROR:
+  		  break;
 
-  case GB_INIT_CARTRIDGE_UNSUPPORTED:
-    printf("Unsupported cartridge.");
-    return;
+  	  case GB_INIT_CARTRIDGE_UNSUPPORTED:
+  		  printf("Unsupported cartridge.");
+  		  return;
 
-  case GB_INIT_INVALID_CHECKSUM:
-    printf("Invalid ROM: Checksum failure.");
-    return;
+  	  case GB_INIT_INVALID_CHECKSUM:
+  		  printf("Invalid ROM: Checksum failure.");
+  		  return;
 
-  default:
-    printf("Unknown error: %d\n", gb_ret);
-    return;
+  	  default:
+  		  printf("Unknown error: %d\n", gb_ret);
+  		  return;
   }
 
   auto_assign_palette(&priv, gb_colour_hash(&gb));
@@ -269,58 +269,21 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
   }
 
   const double target_speed_ms = 1000.0 / VERTICAL_SYNC;
-  double speed_compensation = 0.0;
-  uint_fast32_t new_ticks, old_ticks;
 
   while (1) {
-    ILI9341_StepProgressBar(display);
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-    int delay;
     static unsigned int rtc_timer = 0;
 
-    old_ticks = HAL_GetTick();
-
     ReadGamepadStatus(&gb);
-
-    // TODO: Read buttons and set 'gb.direct.joypad_bits.XXXX'
-    if (old_ticks > 10000)
-      gb.direct.joypad_bits.start = 1;
 
     gb_run_frame(&gb);
 
     // Tick the internal RTC when 1 second has passed
     rtc_timer += target_speed_ms;
-
     if (rtc_timer >= 1000) {
       rtc_timer -= 1000;
       gb_tick_rtc(&gb);
     }
 
-    // TODO: Update the screen copying from priv.fb
     ILI9341_DrawFramebuffer(display, priv.fb, LCD_WIDTH, LCD_HEIGHT);
-
-    new_ticks = HAL_GetTick();
-
-    speed_compensation += target_speed_ms - (new_ticks - old_ticks);
-    delay = (int)(speed_compensation);
-    speed_compensation -= delay;
-
-    // Only run delay logic if required
-    if (delay > 0) {
-      uint_fast32_t delay_ticks = HAL_GetTick();
-      uint_fast32_t after_delay_ticks;
-
-      rtc_timer += delay;
-
-      if (rtc_timer >= 1000) {
-        rtc_timer -= 1000;
-        gb_tick_rtc(&gb);
-      }
-
-      HAL_Delay(delay_ticks);
-      after_delay_ticks = HAL_GetTick();
-      speed_compensation +=
-          (double)delay - (int)(after_delay_ticks - delay_ticks);
-    }
   }
 }
