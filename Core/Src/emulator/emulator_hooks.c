@@ -1,6 +1,7 @@
 #include "emulator/emulator_hooks.h"
 #include "emulator/peanut_gb.h"
 #include "stm32f4xx_hal.h"
+#include "util/profiling.h"
 #include <stdio.h>
 
 struct priv_t {
@@ -26,13 +27,14 @@ static uint8_t Hook_ReadCartridgeRam(struct gb_s *gb,
 }
 
 static void Hook_WriteCartridgeRam(struct gb_s *gb, const uint_fast32_t addr,
-                            const uint8_t val) {
+                                   const uint8_t val) {
   const struct priv_t *const p = gb->direct.priv;
   p->cart_ram[addr] = val;
 }
 
-static void Hook_ReportEmulationError(struct gb_s *gb, const enum gb_error_e gb_err,
-                               const uint16_t val) {
+static void Hook_ReportEmulationError(struct gb_s *gb,
+                                      const enum gb_error_e gb_err,
+                                      const uint16_t val) {
   switch (gb_err) {
   case GB_INVALID_OPCODE:
     printf("Invalid opcode %#04x at PC: %#06x, SP: %#06x\n", val,
@@ -52,13 +54,13 @@ static void Hook_ReportEmulationError(struct gb_s *gb, const enum gb_error_e gb_
 }
 
 static void Hook_DrawDisplayLine(struct gb_s *gb, const uint8_t pixels[160],
-                          const uint_fast8_t line) {
+                                 const uint_fast8_t line) {
   struct priv_t *priv = gb->direct.priv;
-
 
   uint16_t *l = &priv->fb[LCD_WIDTH * line];
   for (unsigned int x = 0; x < LCD_WIDTH; x++) {
-    l[x] = priv->selected_palette[(pixels[x] & LCD_PALETTE_ALL) >> 4][pixels[x] & 3];
+    l[x] = priv->selected_palette[(pixels[x] & LCD_PALETTE_ALL) >> 4]
+                                 [pixels[x] & 3];
   }
 }
 
@@ -207,28 +209,26 @@ static void auto_assign_palette(struct priv_t *priv, uint8_t game_checksum) {
   }
 }
 
-static void ReadGamepadStatus(struct gb_s *gb)
-{
-#define BUTTON_A		GPIOA, GPIO_PIN_8
-#define BUTTON_B		GPIOA, GPIO_PIN_9
-#define BUTTON_START	GPIOA, GPIO_PIN_10
-#define BUTTON_SELECT	GPIOA, GPIO_PIN_11
-#define BUTTON_LEFT		GPIOA, GPIO_PIN_12
-#define BUTTON_UP		GPIOA, GPIO_PIN_15
-#define BUTTON_RIGHT	GPIOB, GPIO_PIN_3
-#define BUTTON_DOWN		GPIOB, GPIO_PIN_4
+static void ReadGamepadStatus(struct gb_s *gb) {
+#define BUTTON_A GPIOA, GPIO_PIN_8
+#define BUTTON_B GPIOA, GPIO_PIN_9
+#define BUTTON_START GPIOA, GPIO_PIN_10
+#define BUTTON_SELECT GPIOA, GPIO_PIN_11
+#define BUTTON_LEFT GPIOA, GPIO_PIN_12
+#define BUTTON_UP GPIOA, GPIO_PIN_15
+#define BUTTON_RIGHT GPIOB, GPIO_PIN_3
+#define BUTTON_DOWN GPIOB, GPIO_PIN_4
 
-#define READ_BUTTON(b)	HAL_GPIO_ReadPin(b) == GPIO_PIN_SET ? 1 : 0
+#define READ_BUTTON(b) HAL_GPIO_ReadPin(b) == GPIO_PIN_SET ? 1 : 0
 
-	gb->direct.joypad_bits.a = READ_BUTTON(BUTTON_A);
-	gb->direct.joypad_bits.b = READ_BUTTON(BUTTON_B);
-	gb->direct.joypad_bits.start = READ_BUTTON(BUTTON_START);
-	gb->direct.joypad_bits.select = READ_BUTTON(BUTTON_SELECT);
-	gb->direct.joypad_bits.left = READ_BUTTON(BUTTON_LEFT);
-	gb->direct.joypad_bits.up = READ_BUTTON(BUTTON_UP);
-	gb->direct.joypad_bits.right = READ_BUTTON(BUTTON_RIGHT);
-	gb->direct.joypad_bits.down = READ_BUTTON(BUTTON_DOWN);
-
+  gb->direct.joypad_bits.a = READ_BUTTON(BUTTON_A);
+  gb->direct.joypad_bits.b = READ_BUTTON(BUTTON_B);
+  gb->direct.joypad_bits.start = READ_BUTTON(BUTTON_START);
+  gb->direct.joypad_bits.select = READ_BUTTON(BUTTON_SELECT);
+  gb->direct.joypad_bits.left = READ_BUTTON(BUTTON_LEFT);
+  gb->direct.joypad_bits.up = READ_BUTTON(BUTTON_UP);
+  gb->direct.joypad_bits.right = READ_BUTTON(BUTTON_RIGHT);
+  gb->direct.joypad_bits.down = READ_BUTTON(BUTTON_DOWN);
 }
 
 void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
@@ -239,20 +239,20 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
       gb_init(&gb, &Hook_ReadRom, &Hook_ReadCartridgeRam,
               &Hook_WriteCartridgeRam, &Hook_ReportEmulationError, &priv);
   switch (gb_ret) {
-  	  case GB_INIT_NO_ERROR:
-  		  break;
+  case GB_INIT_NO_ERROR:
+    break;
 
-  	  case GB_INIT_CARTRIDGE_UNSUPPORTED:
-  		  printf("Unsupported cartridge.");
-  		  return;
+  case GB_INIT_CARTRIDGE_UNSUPPORTED:
+    printf("Unsupported cartridge.");
+    return;
 
-  	  case GB_INIT_INVALID_CHECKSUM:
-  		  printf("Invalid ROM: Checksum failure.");
-  		  return;
+  case GB_INIT_INVALID_CHECKSUM:
+    printf("Invalid ROM: Checksum failure.");
+    return;
 
-  	  default:
-  		  printf("Unknown error: %d\n", gb_ret);
-  		  return;
+  default:
+    printf("Unknown error: %d\n", gb_ret);
+    return;
   }
 
   auto_assign_palette(&priv, gb_colour_hash(&gb));
@@ -272,10 +272,14 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
 
   while (1) {
     static unsigned int rtc_timer = 0;
+    PROFILING_START("SingleLoop");
+    PROFILING_EVENT("Start");
 
     ReadGamepadStatus(&gb);
+    PROFILING_EVENT("Read gamepad status done");
 
     gb_run_frame(&gb);
+    PROFILING_EVENT("frame created");
 
     // Tick the internal RTC when 1 second has passed
     rtc_timer += target_speed_ms;
@@ -283,7 +287,10 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
       rtc_timer -= 1000;
       gb_tick_rtc(&gb);
     }
+    PROFILING_EVENT("rtc stuff");
 
     ILI9341_DrawFramebuffer(display, priv.fb, LCD_WIDTH, LCD_HEIGHT);
+    PROFILING_EVENT("framebuffer sent");
+    PROFILING_STOP();
   }
 }

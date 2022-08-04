@@ -5,7 +5,6 @@
 #define PIN_HIGH(p) HAL_GPIO_WritePin(p.port, p.pin, GPIO_PIN_SET)
 
 #define DELAY(x) HAL_Delay(x)
-#define SMALL_DELAY(ili) HAL_Delay(1)
 
 #define RD_ACTIVE(ili) PIN_LOW(ili->RD)
 #define RD_IDLE(ili) PIN_HIGH(ili->RD)
@@ -126,7 +125,6 @@ inline static void ILI9341_WriteCommandWithParameter(struct ILI9341_t *ili,
                                                      uint8_t command,
                                                      uint8_t param1) {
   ILI9341_WriteCommand(ili, command);
-  SMALL_DELAY(ili);
   ILI9341_WriteData(ili, param1);
 }
 
@@ -135,9 +133,7 @@ inline static void ILI9341_WriteCommandWith2Parameters(struct ILI9341_t *ili,
                                                        uint8_t param1,
                                                        uint8_t param2) {
   ILI9341_WriteCommand(ili, command);
-  SMALL_DELAY(ili);
   ILI9341_WriteData(ili, param1);
-  SMALL_DELAY(ili);
   ILI9341_WriteData(ili, param2);
 }
 
@@ -147,11 +143,8 @@ inline static void ILI9341_WriteCommandWith3Parameters(struct ILI9341_t *ili,
                                                        uint8_t param2,
                                                        uint8_t param3) {
   ILI9341_WriteCommand(ili, command);
-  SMALL_DELAY(ili);
   ILI9341_WriteData(ili, param1);
-  SMALL_DELAY(ili);
   ILI9341_WriteData(ili, param2);
-  SMALL_DELAY(ili);
   ILI9341_WriteData(ili, param3);
 }
 
@@ -160,13 +153,9 @@ ILI9341_WriteCommandWith4Parameters(struct ILI9341_t *ili, uint8_t command,
                                     uint8_t param1, uint8_t param2,
                                     uint8_t param3, uint8_t param4) {
   ILI9341_WriteCommand(ili, command);
-  SMALL_DELAY(ili);
   ILI9341_WriteData(ili, param1);
-  SMALL_DELAY(ili);
   ILI9341_WriteData(ili, param2);
-  SMALL_DELAY(ili);
   ILI9341_WriteData(ili, param3);
-  SMALL_DELAY(ili);
   ILI9341_WriteData(ili, param4);
 }
 
@@ -247,34 +236,25 @@ void ILI9341_SendInitializationSequence(struct ILI9341_t *ili) {
   ILI9341_WriteCommand(ili, CMD_SOFTWARE_RESET);
   DELAY(150);
   ILI9341_WriteCommand(ili, CMD_DISPLAY_OFF);
-  SMALL_DELAY(ili);
 
   ILI9341_WriteCommandWithParameter(ili, CMD_POWER_CONTROL_1, 0x23);
-  SMALL_DELAY(ili);
   ILI9341_WriteCommandWithParameter(ili, CMD_POWER_CONTROL_2, 0x10);
-  SMALL_DELAY(ili);
   ILI9341_WriteCommandWith2Parameters(ili, CMD_VCOM_CONTROL_1, 0x2B, 0x2B);
-  SMALL_DELAY(ili);
   ILI9341_WriteCommandWithParameter(ili, CMD_VCOM_CONTROL_2, 0xC0);
-  SMALL_DELAY(ili);
   ILI9341_WriteCommandWithParameter(
       ili, CMD_MEMORY_ACCESS_CONTROL,
       PARAM_FLAG_MEMORY_ACCESS_CONTROL_ROW_ADDRESS_ORDER |
           PARAM_FLAG_MEMORY_ACCESS_CONTROL_ROW_BGR);
-  SMALL_DELAY(ili);
   ILI9341_WriteCommandWithParameter(
       ili, CMD_PIXEL_FORMAT_SET,
       PARAM_PIXEL_FORMAT_RGB_16_BITS_PER_PIXEL |
           PARAM_PIXEL_FORMAT_BGR_16_BITS_PER_PIXEL);
-  SMALL_DELAY(ili);
   ILI9341_WriteCommandWith2Parameters(ili, CMD_FRAME_RATE_CONTROL, 0x00, 0x1b);
-  SMALL_DELAY(ili);
 
   ILI9341_WriteCommandWithParameter(
       ili, CMD_ENTRY_MODE_SET,
       PARAM_FLAG_ENTRY_MODE_LOW_VOLTAGE_DETECTION_DISABLED |
           PARAM_FLAG_ENTRY_MODE_NORMAL_DISPLAY);
-  SMALL_DELAY(ili);
 
   ILI9341_WriteCommand(ili, CMD_SLEEP_OUT);
   DELAY(150);
@@ -289,8 +269,6 @@ void ILI9341_SetDrawingArea(struct ILI9341_t *ili, uint16_t x1, uint16_t x2,
   // DO NOT ADD CS_ACTIVE / CS_IDLE HERE BECAUSE IT DISABLES THE MEMORY WRITE
   // AFTER
 
-  ILI9341_PrepareDataPinsForWriting(ili);
-
   ILI9341_WriteCommandWith4Parameters(ili, CMD_COLUMN_ADDRESS_SET,
                                       (uint8_t)(x1 >> 8), (uint8_t)(x1 & 0xff),
                                       (uint8_t)(x2 >> 8), (uint8_t)x2 & 0xff);
@@ -300,54 +278,78 @@ void ILI9341_SetDrawingArea(struct ILI9341_t *ili, uint16_t x1, uint16_t x2,
                                       (uint8_t)(y2 >> 8), (uint8_t)y2 & 0xff);
 }
 
-extern DMA_HandleTypeDef hdma_memtomem_dma2_stream0;
-
 void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[],
                              uint16_t width, uint16_t height) {
+// WARN: This assumes that D0 -> PA0, D1 -> PA1, D2 -> PA2 ... D7 -> PA7
+#define WRITE_DIRECT_TO_DATA_PINS(data)                                        \
+  GPIOA->BSRR = ((uint32_t)(~(data)) << 16) | (data);
+
   CS_ACTIVE(ili);
-  ILI9341_PrepareDataPinsForWriting(ili);
 
-  ILI9341_SetDrawingArea(ili, 0, width - 1, 0, height - 1);
-  ILI9341_WriteCommand(ili, CMD_MEMORY_WRITE);
+  // SetDrawingArea inlined with direct register writes
+  {
+    // ColumnAddressSet(x1=0, x2=width)
+    CD_COMMAND(ili);
+    WR_ACTIVE(ili);
+    WRITE_DIRECT_TO_DATA_PINS(CMD_COLUMN_ADDRESS_SET);
+    WR_IDLE(ili);
 
-  uint8_t *fb = (uint8_t*) framebuffer;
+    CD_DATA(ili);
+    WR_ACTIVE(ili);
+    WRITE_DIRECT_TO_DATA_PINS((uint8_t)(0 >> 8));
+    WR_IDLE(ili);
 
+    WR_ACTIVE(ili);
+    // No need to write, zero is still on the pins
+    WR_IDLE(ili);
+
+    WR_ACTIVE(ili);
+    WRITE_DIRECT_TO_DATA_PINS((uint8_t)((width - 1) >> 8));
+    WR_IDLE(ili);
+
+    WR_ACTIVE(ili);
+    WRITE_DIRECT_TO_DATA_PINS((uint8_t)(width - 1) & 0xff);
+    WR_IDLE(ili);
+
+    // PageAddressSet(y1=0, y2=height)
+    CD_COMMAND(ili);
+    WR_ACTIVE(ili);
+    WRITE_DIRECT_TO_DATA_PINS(CMD_PAGE_ADDRESS_SET);
+    WR_IDLE(ili);
+
+    CD_DATA(ili);
+    WR_ACTIVE(ili);
+    WRITE_DIRECT_TO_DATA_PINS(0);
+    WR_IDLE(ili);
+
+    WR_ACTIVE(ili);
+    // No need to write, zero is still on the pins
+    WR_IDLE(ili);
+
+    WR_ACTIVE(ili);
+    WRITE_DIRECT_TO_DATA_PINS((uint8_t)((height - 1) >> 8));
+    WR_IDLE(ili);
+
+    WR_ACTIVE(ili);
+    WRITE_DIRECT_TO_DATA_PINS((uint8_t)(height - 1) & 0xff);
+    WR_IDLE(ili);
+  }
+
+  CD_COMMAND(ili);
+  WR_ACTIVE(ili);
+  WRITE_DIRECT_TO_DATA_PINS(CMD_MEMORY_WRITE);
+  WR_IDLE(ili);
+
+  CD_DATA(ili);
+  uint8_t *fb = (uint8_t *)framebuffer;
   for (int i = 0; i < 2 * width * height; i++) {
-	  {
-	  	CD_DATA(ili);
-
-	  	WR_ACTIVE(ili);
-	  	// WARN: This assumes that D0 -> PA0, D1 -> PA1, D2 -> PA2 ... D7 -> PA7
-	  	GPIOA->BSRR = ( (uint32_t) (~fb[i]) << 16) | fb[i];
-	  	WR_IDLE(ili);
-	  }
+    // Basically WriteData
+    WR_ACTIVE(ili);
+    WRITE_DIRECT_TO_DATA_PINS(fb[i]);
+    WR_IDLE(ili);
   }
 
   CS_IDLE(ili);
-}
-
-void ILI9341_StepProgressBar(struct ILI9341_t *ili) {
-  static uint16_t color = 0xf800;
-  static uint16_t xpos = 0;
-
-  CS_ACTIVE(ili);
-  ILI9341_PrepareDataPinsForWriting(ili);
-
-  ILI9341_SetDrawingArea(ili, xpos, xpos + 3, 300, 320);
-  ILI9341_WriteCommand(ili, CMD_MEMORY_WRITE);
-  for (int i = 0; i < 20 * 3; i++) {
-    ILI9341_WriteData(ili, (uint8_t)color);
-    ILI9341_WriteData(ili, (uint8_t)color);
-  }
-
-  CS_IDLE(ili);
-
-  xpos += 3;
-  if (xpos > 200) {
-    xpos = 0;
-    color = ~color;
-    color += 8;
-  }
 }
 
 uint32_t ILI9341_ReadID(struct ILI9341_t *ili) {
