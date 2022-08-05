@@ -219,7 +219,8 @@ static void ReadGamepadStatus(struct gb_s *gb) {
 #define BUTTON_RIGHT GPIOB, GPIO_PIN_3
 #define BUTTON_DOWN GPIOB, GPIO_PIN_4
 
-#define READ_BUTTON(b) HAL_GPIO_ReadPin(b) == GPIO_PIN_SET ? 1 : 0
+// 1=button is up, 0=button is down
+#define READ_BUTTON(b) HAL_GPIO_ReadPin(b) == GPIO_PIN_SET ? 0 : 1
 
   gb->direct.joypad_bits.a = READ_BUTTON(BUTTON_A);
   gb->direct.joypad_bits.b = READ_BUTTON(BUTTON_B);
