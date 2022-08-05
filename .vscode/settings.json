@@ -1,0 +1,5 @@
+{
+    "makefile.extensionOutputFolder": "./.vscode",
+    "cortex-debug.armToolchainPath": "/home/marco/.config/Code/User/globalStorage/bmd.stm32-for-vscode/@xpack-dev-tools/arm-none-eabi-gcc/11.2.1-1.2.2/.content/bin",
+    "cortex-debug.openocdPath": "/home/marco/.config/Code/User/globalStorage/bmd.stm32-for-vscode/@xpack-dev-tools/openocd/0.11.0-4.1/.content/bin/openocd"
+}

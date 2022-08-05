@@ -90,6 +90,7 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
   /* USER CODE BEGIN RTC_MspInit 0 */
 
   /* USER CODE END RTC_MspInit 0 */
+
   /** Initializes the peripherals clock
   */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
@@ -200,4 +201,3 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
-

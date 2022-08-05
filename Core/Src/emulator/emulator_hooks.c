@@ -1,8 +1,8 @@
 #include "emulator/emulator_hooks.h"
 #include "emulator/peanut_gb.h"
 #include "stm32f4xx_hal.h"
-#include "util/profiling.h"
 #include <stdio.h>
+
 
 struct priv_t {
   /* Pointer to allocated memory holding GB file. */
@@ -272,14 +272,8 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
 
   while (1) {
     static unsigned int rtc_timer = 0;
-    PROFILING_START("SingleLoop");
-    PROFILING_EVENT("Start");
-
     ReadGamepadStatus(&gb);
-    PROFILING_EVENT("Read gamepad status done");
-
     gb_run_frame(&gb);
-    PROFILING_EVENT("frame created");
 
     // Tick the internal RTC when 1 second has passed
     rtc_timer += target_speed_ms;
@@ -287,10 +281,7 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
       rtc_timer -= 1000;
       gb_tick_rtc(&gb);
     }
-    PROFILING_EVENT("rtc stuff");
 
     ILI9341_DrawFramebuffer(display, priv.fb, LCD_WIDTH, LCD_HEIGHT);
-    PROFILING_EVENT("framebuffer sent");
-    PROFILING_STOP();
   }
 }

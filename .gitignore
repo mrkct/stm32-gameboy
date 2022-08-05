@@ -1,1 +1,4 @@
 Debug/*
+build/*
+.cproject.bak
+.project.bak
