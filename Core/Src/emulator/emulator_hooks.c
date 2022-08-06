@@ -271,6 +271,12 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
 
   const double target_speed_ms = 1000.0 / VERTICAL_SYNC;
 
+
+  volatile int fps_counts[16] = {0};
+  int fps_counts_pos = 0;
+  int frames = 0;
+
+  uint32_t last_ticks = HAL_GetTick();
   while (1) {
     static unsigned int rtc_timer = 0;
     ReadGamepadStatus(&gb);
@@ -284,5 +290,14 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
     }
 
     ILI9341_DrawFramebuffer(display, priv.fb, LCD_WIDTH, LCD_HEIGHT);
+  
+    frames++;
+    if (HAL_GetTick() > last_ticks + 1000) {
+      fps_counts[fps_counts_pos++] = frames;
+      frames = 0;
+      last_ticks = HAL_GetTick();
+      if (fps_counts_pos == 16)
+        fps_counts_pos = 0;
+    }
   }
 }
