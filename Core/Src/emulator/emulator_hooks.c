@@ -3,6 +3,22 @@
 #include "stm32f4xx_hal.h"
 #include <stdio.h>
 
+#define BUTTON_A_PORT GPIOB
+#define BUTTON_A_PIN GPIO_PIN_0
+#define BUTTON_B_PORT GPIOB
+#define BUTTON_B_PIN GPIO_PIN_1
+#define BUTTON_START_PORT GPIOB
+#define BUTTON_START_PIN GPIO_PIN_2
+#define BUTTON_SELECT_PORT GPIOB
+#define BUTTON_SELECT_PIN GPIO_PIN_3
+#define BUTTON_LEFT_PORT GPIOB
+#define BUTTON_LEFT_PIN GPIO_PIN_4
+#define BUTTON_UP_PORT GPIOB
+#define BUTTON_UP_PIN GPIO_PIN_5
+#define BUTTON_RIGHT_PORT GPIOB
+#define BUTTON_RIGHT_PIN GPIO_PIN_6
+#define BUTTON_DOWN_PORT GPIOB
+#define BUTTON_DOWN_PIN GPIO_PIN_7
 
 struct priv_t {
   /* Pointer to allocated memory holding GB file. */
@@ -25,12 +41,14 @@ uint8_t gb_cart_ram_read(struct gb_s *gb, const uint_fast32_t addr) {
   return p->cart_ram[addr];
 }
 
-void gb_cart_ram_write(struct gb_s *gb, const uint_fast32_t addr, const uint8_t val) {
+void gb_cart_ram_write(struct gb_s *gb, const uint_fast32_t addr,
+                       const uint8_t val) {
   const struct priv_t *const p = gb->direct.priv;
   p->cart_ram[addr] = val;
 }
 
-void gb_error(struct gb_s *gb, const enum gb_error_e gb_err, const uint16_t val) {
+void gb_error(struct gb_s *gb, const enum gb_error_e gb_err,
+              const uint16_t val) {
   switch (gb_err) {
   case GB_INVALID_OPCODE:
     printf("Invalid opcode %#04x at PC: %#06x, SP: %#06x\n", val,
@@ -49,7 +67,8 @@ void gb_error(struct gb_s *gb, const enum gb_error_e gb_err, const uint16_t val)
   printf("Error. Press q to exit, or any other key to continue.");
 }
 
-void gb_lcd_draw_line(struct gb_s *gb, const uint8_t *pixels, const uint_fast8_t line) {
+void gb_lcd_draw_line(struct gb_s *gb, const uint8_t *pixels,
+                      const uint_fast8_t line) {
   struct priv_t *priv = gb->direct.priv;
 
   uint16_t *l = &priv->fb[LCD_WIDTH * line];
@@ -204,18 +223,32 @@ static void auto_assign_palette(struct priv_t *priv, uint8_t game_checksum) {
   }
 }
 
-static void ReadGamepadStatus(struct gb_s *gb) {
-#define BUTTON_A GPIOA, GPIO_PIN_8
-#define BUTTON_B GPIOA, GPIO_PIN_9
-#define BUTTON_START GPIOA, GPIO_PIN_10
-#define BUTTON_SELECT GPIOA, GPIO_PIN_11
-#define BUTTON_LEFT GPIOA, GPIO_PIN_12
-#define BUTTON_UP GPIOA, GPIO_PIN_15
-#define BUTTON_RIGHT GPIOB, GPIO_PIN_3
-#define BUTTON_DOWN GPIOB, GPIO_PIN_4
+static void InitializeGamepadPins() {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 
+#define INIT_BUTTON_AS_INPUT(port, pin)                                        \
+  {                                                                            \
+    GPIO_InitStruct.Pin = pin;                                                 \
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;                                \
+    GPIO_InitStruct.Pull = GPIO_NOPULL;                                        \
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;                               \
+    HAL_GPIO_Init(port, &GPIO_InitStruct);                                     \
+  }
+  INIT_BUTTON_AS_INPUT(BUTTON_A_PORT, BUTTON_A_PIN);
+  INIT_BUTTON_AS_INPUT(BUTTON_B_PORT, BUTTON_B_PIN);
+  INIT_BUTTON_AS_INPUT(BUTTON_LEFT_PORT, BUTTON_LEFT_PIN);
+  INIT_BUTTON_AS_INPUT(BUTTON_UP_PORT, BUTTON_UP_PIN);
+  INIT_BUTTON_AS_INPUT(BUTTON_RIGHT_PORT, BUTTON_RIGHT_PIN);
+  INIT_BUTTON_AS_INPUT(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN);
+  INIT_BUTTON_AS_INPUT(BUTTON_START_PORT, BUTTON_START_PIN);
+  INIT_BUTTON_AS_INPUT(BUTTON_SELECT_PORT, BUTTON_SELECT_PIN);
+
+#undef INIT_BUTTON_AS_INPUT
+}
+
+static void ReadGamepadStatus(struct gb_s *gb) {
 // 1=button is up, 0=button is down
-#define READ_BUTTON(b) HAL_GPIO_ReadPin(b) == GPIO_PIN_SET ? 0 : 1
+#define READ_BUTTON(b) HAL_GPIO_ReadPin(b##_PORT, b##_PIN) == GPIO_PIN_SET ? 0 : 1
 
   gb->direct.joypad_bits.a = READ_BUTTON(BUTTON_A);
   gb->direct.joypad_bits.b = READ_BUTTON(BUTTON_B);
@@ -229,6 +262,8 @@ static void ReadGamepadStatus(struct gb_s *gb) {
 
 void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
                    uint8_t *savefile, struct tm datetime) {
+  InitializeGamepadPins();
+
   struct gb_s gb;
   struct priv_t priv = {.rom = rom, .cart_ram = savefile};
   enum gb_init_error_e gb_ret = gb_init(&gb, &priv);
@@ -265,7 +300,6 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
 
   const double target_speed_ms = 1000.0 / VERTICAL_SYNC;
 
-
   volatile int fps_counts[16] = {0};
   int fps_counts_pos = 0;
   int frames = 0;
@@ -273,21 +307,20 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
   uint32_t last_ticks = HAL_GetTick();
   while (1) {
     static unsigned int rtc_timer = 0;
-    
-    
+
     ReadGamepadStatus(&gb);
     gb_run_frame(&gb);
     gb_run_frame(&gb);
-    
+
     // Tick the internal RTC when 1 second has passed
     rtc_timer += target_speed_ms;
     if (rtc_timer >= 1000) {
       rtc_timer -= 1000;
       gb_tick_rtc(&gb);
     }
-    
+
     ILI9341_DrawFramebuffer(display, priv.fb, LCD_WIDTH, LCD_HEIGHT);
-  
+
     frames++;
     if (HAL_GetTick() > last_ticks + 1000) {
       fps_counts[fps_counts_pos++] = frames;
