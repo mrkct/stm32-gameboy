@@ -280,72 +280,60 @@ void ILI9341_SetDrawingArea(struct ILI9341_t *ili, uint16_t x1, uint16_t x2,
 
 void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[],
                              uint16_t width, uint16_t height) {
+
 // WARN: This assumes that D0 -> PA0, D1 -> PA1, D2 -> PA2 ... D7 -> PA7
-#define WRITE_DIRECT_TO_DATA_PINS(data)                                        \
-  GPIOA->BSRR = ((uint32_t)(~(data)) << 16) | (data);
+#define WRITE_DATA_DIRECT_TO_DATA_PINS(data) \
+  GPIOA->ODR = ((uint16_t) (data)) | ili->RST.pin | ili->RD.pin | ili->RS.pin
+
+#define WRITE_COMMAND_DIRECT_TO_DATA_PINS(data) \
+  GPIOA->ODR = ((uint16_t) (data)) | ili->RST.pin | ili->RD.pin 
 
   CS_ACTIVE(ili);
 
   // SetDrawingArea inlined with direct register writes
+  // Note that we don't call WR_ACTIVE or CD_{COMMAND, DATA} because
+  // those are set with the WRITE_X_DIRECT_TO_DATA_PINS calls
   {
     // ColumnAddressSet(x1=0, x2=width)
-    CD_COMMAND(ili);
-    WR_ACTIVE(ili);
-    WRITE_DIRECT_TO_DATA_PINS(CMD_COLUMN_ADDRESS_SET);
+    WRITE_COMMAND_DIRECT_TO_DATA_PINS(CMD_COLUMN_ADDRESS_SET);
     WR_IDLE(ili);
 
-    CD_DATA(ili);
-    WR_ACTIVE(ili);
-    WRITE_DIRECT_TO_DATA_PINS((uint8_t)(0 >> 8));
+    WRITE_DATA_DIRECT_TO_DATA_PINS(0);
     WR_IDLE(ili);
 
-    WR_ACTIVE(ili);
-    // No need to write, zero is still on the pins
+    WRITE_DATA_DIRECT_TO_DATA_PINS(0);
     WR_IDLE(ili);
 
-    WR_ACTIVE(ili);
-    WRITE_DIRECT_TO_DATA_PINS((uint8_t)((width - 1) >> 8));
+    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)((width - 1) >> 8));
     WR_IDLE(ili);
 
-    WR_ACTIVE(ili);
-    WRITE_DIRECT_TO_DATA_PINS((uint8_t)(width - 1) & 0xff);
+    WRITE_DATA_DIRECT_TO_DATA_PINS(((uint8_t)(width - 1) & 0xff));
     WR_IDLE(ili);
 
     // PageAddressSet(y1=0, y2=height)
-    CD_COMMAND(ili);
-    WR_ACTIVE(ili);
-    WRITE_DIRECT_TO_DATA_PINS(CMD_PAGE_ADDRESS_SET);
+    WRITE_COMMAND_DIRECT_TO_DATA_PINS(CMD_PAGE_ADDRESS_SET);
     WR_IDLE(ili);
 
-    CD_DATA(ili);
-    WR_ACTIVE(ili);
-    WRITE_DIRECT_TO_DATA_PINS(0);
+    WRITE_DATA_DIRECT_TO_DATA_PINS(0);
     WR_IDLE(ili);
 
-    WR_ACTIVE(ili);
-    // No need to write, zero is still on the pins
+    WRITE_DATA_DIRECT_TO_DATA_PINS(0);
     WR_IDLE(ili);
 
-    WR_ACTIVE(ili);
-    WRITE_DIRECT_TO_DATA_PINS((uint8_t)((height - 1) >> 8));
+    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)((height - 1) >> 8));
     WR_IDLE(ili);
 
-    WR_ACTIVE(ili);
-    WRITE_DIRECT_TO_DATA_PINS((uint8_t)(height - 1) & 0xff);
+    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)(height - 1) & 0xff);
     WR_IDLE(ili);
   }
 
-  CD_COMMAND(ili);
-  WR_ACTIVE(ili);
-  WRITE_DIRECT_TO_DATA_PINS(CMD_MEMORY_WRITE);
+  WRITE_COMMAND_DIRECT_TO_DATA_PINS(CMD_MEMORY_WRITE);
   WR_IDLE(ili);
 
-  CD_DATA(ili);
   uint8_t *fb = (uint8_t *)framebuffer;
   for (int i = 0; i < 2 * width * height; i++) {
     // Basically WriteData
-    WR_ACTIVE(ili);
-    WRITE_DIRECT_TO_DATA_PINS(fb[i]);
+    WRITE_DATA_DIRECT_TO_DATA_PINS(fb[i]);
     WR_IDLE(ili);
   }
 

@@ -98,12 +98,6 @@ int main(void)
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
 
-#define LCD_CS .port = GPIOB, .pin = GPIO_PIN_8
-#define LCD_RS .port = GPIOB, .pin = GPIO_PIN_7
-#define LCD_WR .port = GPIOB, .pin = GPIO_PIN_6
-#define LCD_RD .port = GPIOB, .pin = GPIO_PIN_5
-#define LCD_RESET .port = GPIOB, .pin = GPIO_PIN_9
-
 #define LCD_D0 .port = GPIOA, .pin = GPIO_PIN_0
 #define LCD_D1 .port = GPIOA, .pin = GPIO_PIN_1
 #define LCD_D2 .port = GPIOA, .pin = GPIO_PIN_2
@@ -112,6 +106,12 @@ int main(void)
 #define LCD_D5 .port = GPIOA, .pin = GPIO_PIN_5
 #define LCD_D6 .port = GPIOA, .pin = GPIO_PIN_6
 #define LCD_D7 .port = GPIOA, .pin = GPIO_PIN_7
+
+#define LCD_RD .port = GPIOA, .pin = GPIO_PIN_8
+#define LCD_WR .port = GPIOA, .pin = GPIO_PIN_9
+#define LCD_RS .port = GPIOA, .pin = GPIO_PIN_10
+#define LCD_CS .port = GPIOA, .pin = GPIO_PIN_11
+#define LCD_RESET .port = GPIOA, .pin = GPIO_PIN_12
 
   struct ILI9341_t lcd;
   ILI9341_Init(&lcd, (struct ILI9341_Pin_t){LCD_D7},
@@ -318,7 +318,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
-                          |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, GPIO_PIN_RESET);
+                          |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_8

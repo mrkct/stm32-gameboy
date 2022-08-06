@@ -6,7 +6,7 @@
 
 struct ILI9341_Pin_t {
   GPIO_TypeDef *port;
-  int pin;
+  uint16_t pin;
 };
 
 struct ILI9341_t {
