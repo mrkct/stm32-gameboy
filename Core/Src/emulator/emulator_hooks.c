@@ -15,26 +15,22 @@ struct priv_t {
   uint16_t fb[LCD_HEIGHT * LCD_WIDTH];
 };
 
-static uint8_t Hook_ReadRom(struct gb_s *gb, const uint_fast32_t addr) {
+uint8_t gb_rom_read(struct gb_s *gb, const uint_fast32_t addr) {
   const struct priv_t *const p = gb->direct.priv;
   return p->rom[addr];
 }
 
-static uint8_t Hook_ReadCartridgeRam(struct gb_s *gb,
-                                     const uint_fast32_t addr) {
+uint8_t gb_cart_ram_read(struct gb_s *gb, const uint_fast32_t addr) {
   const struct priv_t *const p = gb->direct.priv;
   return p->cart_ram[addr];
 }
 
-static void Hook_WriteCartridgeRam(struct gb_s *gb, const uint_fast32_t addr,
-                                   const uint8_t val) {
+void gb_cart_ram_write(struct gb_s *gb, const uint_fast32_t addr, const uint8_t val) {
   const struct priv_t *const p = gb->direct.priv;
   p->cart_ram[addr] = val;
 }
 
-static void Hook_ReportEmulationError(struct gb_s *gb,
-                                      const enum gb_error_e gb_err,
-                                      const uint16_t val) {
+void gb_error(struct gb_s *gb, const enum gb_error_e gb_err, const uint16_t val) {
   switch (gb_err) {
   case GB_INVALID_OPCODE:
     printf("Invalid opcode %#04x at PC: %#06x, SP: %#06x\n", val,
@@ -53,8 +49,7 @@ static void Hook_ReportEmulationError(struct gb_s *gb,
   printf("Error. Press q to exit, or any other key to continue.");
 }
 
-static void Hook_DrawDisplayLine(struct gb_s *gb, const uint8_t pixels[160],
-                                 const uint_fast8_t line) {
+void gb_lcd_draw_line(struct gb_s *gb, const uint8_t *pixels, const uint_fast8_t line) {
   struct priv_t *priv = gb->direct.priv;
 
   uint16_t *l = &priv->fb[LCD_WIDTH * line];
@@ -236,9 +231,7 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
                    uint8_t *savefile, struct tm datetime) {
   struct gb_s gb;
   struct priv_t priv = {.rom = rom, .cart_ram = savefile};
-  enum gb_init_error_e gb_ret =
-      gb_init(&gb, &Hook_ReadRom, &Hook_ReadCartridgeRam,
-              &Hook_WriteCartridgeRam, &Hook_ReportEmulationError, &priv);
+  enum gb_init_error_e gb_ret = gb_init(&gb, &priv);
   switch (gb_ret) {
   case GB_INIT_NO_ERROR:
     break;
@@ -258,7 +251,7 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
 
   auto_assign_palette(&priv, gb_colour_hash(&gb));
   gb_set_rtc(&gb, &datetime);
-  gb_init_lcd(&gb, &Hook_DrawDisplayLine);
+  gb_init_lcd(&gb);
 
   char title[20];
   gb_get_rom_name(&gb, title);

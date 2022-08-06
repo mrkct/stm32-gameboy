@@ -288,8 +288,6 @@ void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[],
 #define WRITE_COMMAND_DIRECT_TO_DATA_PINS(data) \
   GPIOA->ODR = ((uint16_t) (data)) | ili->RST.pin | ili->RD.pin 
 
-  CS_ACTIVE(ili);
-
   // SetDrawingArea inlined with direct register writes
   // Note that we don't call WR_ACTIVE or CD_{COMMAND, DATA} because
   // those are set with the WRITE_X_DIRECT_TO_DATA_PINS calls

@@ -336,43 +336,6 @@ enum gb_serial_rx_ret_e
  */
 struct gb_s
 {
-	/**
-	 * Return byte from ROM at given address.
-	 *
-	 * \param gb_s	emulator context
-	 * \param addr	address
-	 * \return		byte at address in ROM
-	 */
-	uint8_t (*gb_rom_read)(struct gb_s*, const uint_fast32_t addr);
-
-	/**
-	 * Return byte from cart RAM at given address.
-	 *
-	 * \param gb_s	emulator context
-	 * \param addr	address
-	 * \return		byte at address in RAM
-	 */
-	uint8_t (*gb_cart_ram_read)(struct gb_s*, const uint_fast32_t addr);
-
-	/**
-	 * Write byte to cart RAM at given address.
-	 *
-	 * \param gb_s	emulator context
-	 * \param addr	address
-	 * \param val	value to write to address in RAM
-	 */
-	void (*gb_cart_ram_write)(struct gb_s*, const uint_fast32_t addr,
-				  const uint8_t val);
-
-	/**
-	 * Notify front-end of error.
-	 *
-	 * \param gb_s			emulator context
-	 * \param gb_error_e	error code
-	 * \param val			arbitrary value related to error
-	 */
-	void (*gb_error)(struct gb_s*, const enum gb_error_e, const uint16_t val);
-
 	/* Transmit one byte and return the received byte. */
 	void (*gb_serial_tx)(struct gb_s*, const uint8_t tx);
 	enum gb_serial_rx_ret_e (*gb_serial_rx)(struct gb_s*, uint8_t* rx);
@@ -452,9 +415,7 @@ struct gb_s
 		 * \param line		Line to draw pixels on. This is
 		 * guaranteed to be between 0-144 inclusive.
 		 */
-		void (*lcd_draw_line)(struct gb_s *gb,
-				const uint8_t *pixels,
-				const uint_fast8_t line);
+		
 
 		/* Palettes */
 		uint8_t bg_palette[4];
@@ -503,6 +464,15 @@ struct gb_s
 		void *priv;
 	} direct;
 };
+
+/**
+ * These are the functions you need to implement 
+ */
+uint8_t gb_rom_read(struct gb_s*, const uint_fast32_t addr);
+uint8_t gb_cart_ram_read(struct gb_s*, const uint_fast32_t addr);
+void gb_cart_ram_write(struct gb_s*, const uint_fast32_t addr, const uint8_t val);
+void gb_error(struct gb_s*, const enum gb_error_e, const uint16_t val);
+void gb_lcd_draw_line(struct gb_s *gb, const uint8_t *pixels, const uint_fast8_t line);
 
 /**
  * Tick the internal RTC by one second.
@@ -566,17 +536,17 @@ uint8_t __gb_read(struct gb_s *gb, const uint_fast16_t addr)
 	case 0x1:
 	case 0x2:
 	case 0x3:
-		return gb->gb_rom_read(gb, addr);
+		return gb_rom_read(gb, addr);
 
 	case 0x4:
 	case 0x5:
 	case 0x6:
 	case 0x7:
 		if(gb->mbc == 1 && gb->cart_mode_select)
-			return gb->gb_rom_read(gb,
+			return gb_rom_read(gb,
 					       addr + ((gb->selected_rom_bank & 0x1F) - 1) * ROM_BANK_SIZE);
 		else
-			return gb->gb_rom_read(gb, addr + (gb->selected_rom_bank - 1) * ROM_BANK_SIZE);
+			return gb_rom_read(gb, addr + (gb->selected_rom_bank - 1) * ROM_BANK_SIZE);
 
 	case 0x8:
 	case 0x9:
@@ -591,11 +561,11 @@ uint8_t __gb_read(struct gb_s *gb, const uint_fast16_t addr)
 			else if((gb->cart_mode_select || gb->mbc != 1) &&
 					gb->cart_ram_bank < gb->num_ram_banks)
 			{
-				return gb->gb_cart_ram_read(gb, addr - CART_RAM_ADDR +
+				return gb_cart_ram_read(gb, addr - CART_RAM_ADDR +
 							    (gb->cart_ram_bank * CRAM_BANK_SIZE));
 			}
 			else
-				return gb->gb_cart_ram_read(gb, addr - CART_RAM_ADDR);
+				return gb_cart_ram_read(gb, addr - CART_RAM_ADDR);
 		}
 
 		return 0xFF;
@@ -725,7 +695,7 @@ uint8_t __gb_read(struct gb_s *gb, const uint_fast16_t addr)
 		}
 	}
 
-	(gb->gb_error)(gb, GB_INVALID_READ, addr);
+	gb_error(gb, GB_INVALID_READ, addr);
 	return 0xFF;
 }
 
@@ -819,11 +789,11 @@ void __gb_write(struct gb_s *gb, const uint_fast16_t addr, const uint8_t val)
 			else if(gb->cart_mode_select &&
 					gb->cart_ram_bank < gb->num_ram_banks)
 			{
-				gb->gb_cart_ram_write(gb,
+				gb_cart_ram_write(gb,
 						      addr - CART_RAM_ADDR + (gb->cart_ram_bank * CRAM_BANK_SIZE), val);
 			}
 			else if(gb->num_ram_banks)
-				gb->gb_cart_ram_write(gb, addr - CART_RAM_ADDR, val);
+				gb_cart_ram_write(gb, addr - CART_RAM_ADDR, val);
 		}
 
 		return;
@@ -1024,7 +994,7 @@ void __gb_write(struct gb_s *gb, const uint_fast16_t addr, const uint8_t val)
 		}
 	}
 
-	(gb->gb_error)(gb, GB_INVALID_WRITE, addr);
+	gb_error(gb, GB_INVALID_WRITE, addr);
 }
 
 uint8_t __gb_execute_cb(struct gb_s *gb)
@@ -1243,10 +1213,6 @@ static int compare_sprites(const void *in1, const void *in2)
 void __gb_draw_line(struct gb_s *gb)
 {
 	uint8_t pixels[160] = {0};
-
-	/* If LCD not initialised by front-end, don't render anything. */
-	if(gb->display.lcd_draw_line == NULL)
-		return;
 
 	if(gb->direct.frame_skip && !gb->display.frame_skip_count)
 		return;
@@ -1549,7 +1515,7 @@ void __gb_draw_line(struct gb_s *gb)
 		}
 	}
 
-	gb->display.lcd_draw_line(gb, pixels, gb->gb_reg.LY);
+	gb_lcd_draw_line(gb, pixels, gb->gb_reg.LY);
 }
 #endif
 
@@ -3434,7 +3400,7 @@ void __gb_step_cpu(struct gb_s *gb)
 		break;
 
 	default:
-		(gb->gb_error)(gb, GB_INVALID_OPCODE, opcode);
+		gb_error(gb, GB_INVALID_OPCODE, opcode);
 	}
 
 	/* DIV register timing */
@@ -3632,7 +3598,7 @@ uint_fast32_t gb_get_save_size(struct gb_s *gb)
 	{
 		0x00, 0x800, 0x2000, 0x8000, 0x20000
 	};
-	uint8_t ram_size = gb->gb_rom_read(gb, ram_size_location);
+	uint8_t ram_size = gb_rom_read(gb, ram_size_location);
 	return ram_sizes[ram_size];
 }
 
@@ -3659,7 +3625,7 @@ uint8_t gb_colour_hash(struct gb_s *gb)
 	uint8_t x = 0;
 
 	for(uint16_t i = ROM_TITLE_START_ADDR; i <= ROM_TITLE_END_ADDR; i++)
-		x += gb->gb_rom_read(gb, i);
+		x += gb_rom_read(gb, i);
 
 	return x;
 }
@@ -3728,12 +3694,7 @@ void gb_reset(struct gb_s *gb)
  * Initialise the emulator context. gb_reset() is also called to initialise
  * the CPU.
  */
-enum gb_init_error_e gb_init(struct gb_s *gb,
-			     uint8_t (*gb_rom_read)(struct gb_s*, const uint_fast32_t),
-			     uint8_t (*gb_cart_ram_read)(struct gb_s*, const uint_fast32_t),
-			     void (*gb_cart_ram_write)(struct gb_s*, const uint_fast32_t, const uint8_t),
-			     void (*gb_error)(struct gb_s*, const enum gb_error_e, const uint16_t),
-			     void *priv)
+enum gb_init_error_e gb_init(struct gb_s *gb, void *priv)
 {
 	const uint16_t mbc_location = 0x0147;
 	const uint16_t bank_count_location = 0x0148;
@@ -3764,10 +3725,6 @@ enum gb_init_error_e gb_init(struct gb_s *gb,
 	};
 	const uint8_t num_ram_banks[] = { 0, 1, 1, 4, 16, 8 };
 
-	gb->gb_rom_read = gb_rom_read;
-	gb->gb_cart_ram_read = gb_cart_ram_read;
-	gb->gb_cart_ram_write = gb_cart_ram_write;
-	gb->gb_error = gb_error;
 	gb->direct.priv = priv;
 
 	/* Initialise serial transfer function to NULL. If the front-end does
@@ -3781,27 +3738,26 @@ enum gb_init_error_e gb_init(struct gb_s *gb,
 		uint8_t x = 0;
 
 		for(uint16_t i = 0x0134; i <= 0x014C; i++)
-			x = x - gb->gb_rom_read(gb, i) - 1;
+			x = x - gb_rom_read(gb, i) - 1;
 
-		if(x != gb->gb_rom_read(gb, ROM_HEADER_CHECKSUM_LOC))
+		if(x != gb_rom_read(gb, ROM_HEADER_CHECKSUM_LOC))
 			return GB_INIT_INVALID_CHECKSUM;
 	}
 
 	/* Check if cartridge type is supported, and set MBC type. */
 	{
-		const uint8_t mbc_value = gb->gb_rom_read(gb, mbc_location);
+		const uint8_t mbc_value = gb_rom_read(gb, mbc_location);
 
 		if(mbc_value > sizeof(cart_mbc) - 1 ||
 				(gb->mbc = cart_mbc[mbc_value]) == 255u)
 			return GB_INIT_CARTRIDGE_UNSUPPORTED;
 	}
 
-	gb->cart_ram = cart_ram[gb->gb_rom_read(gb, mbc_location)];
-	gb->num_rom_banks_mask = num_rom_banks_mask[gb->gb_rom_read(gb, bank_count_location)] - 1;
-	gb->num_ram_banks = num_ram_banks[gb->gb_rom_read(gb, ram_size_location)];
+	gb->cart_ram = cart_ram[gb_rom_read(gb, mbc_location)];
+	gb->num_rom_banks_mask = num_rom_banks_mask[gb_rom_read(gb, bank_count_location)] - 1;
+	gb->num_ram_banks = num_ram_banks[gb_rom_read(gb, ram_size_location)];
 
 	gb->lcd_blank = 0;
-	gb->display.lcd_draw_line = NULL;
 
 	gb_reset(gb);
 
@@ -3824,7 +3780,7 @@ const char* gb_get_rom_name(struct gb_s* gb, char *title_str)
 
 	for(; title_loc <= title_end; title_loc++)
 	{
-		const char title_char = gb->gb_rom_read(gb, title_loc);
+		const char title_char = gb_rom_read(gb, title_loc);
 
 		if(title_char >= ' ' && title_char <= '_')
 		{
@@ -3840,13 +3796,8 @@ const char* gb_get_rom_name(struct gb_s* gb, char *title_str)
 }
 
 #if ENABLE_LCD
-void gb_init_lcd(struct gb_s *gb,
-		void (*lcd_draw_line)(struct gb_s *gb,
-			const uint8_t *pixels,
-			const uint_fast8_t line))
+void gb_init_lcd(struct gb_s *gb)
 {
-	gb->display.lcd_draw_line = lcd_draw_line;
-
 	gb->direct.interlace = 0;
 	gb->display.interlace_count = 0;
 	gb->direct.frame_skip = 0;
