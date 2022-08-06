@@ -2,23 +2,8 @@
 #include "emulator/peanut_gb.h"
 #include "stm32f4xx_hal.h"
 #include <stdio.h>
+#include "config.h"
 
-#define BUTTON_A_PORT GPIOB
-#define BUTTON_A_PIN GPIO_PIN_0
-#define BUTTON_B_PORT GPIOB
-#define BUTTON_B_PIN GPIO_PIN_1
-#define BUTTON_START_PORT GPIOB
-#define BUTTON_START_PIN GPIO_PIN_2
-#define BUTTON_SELECT_PORT GPIOB
-#define BUTTON_SELECT_PIN GPIO_PIN_3
-#define BUTTON_LEFT_PORT GPIOB
-#define BUTTON_LEFT_PIN GPIO_PIN_4
-#define BUTTON_UP_PORT GPIOB
-#define BUTTON_UP_PIN GPIO_PIN_5
-#define BUTTON_RIGHT_PORT GPIOB
-#define BUTTON_RIGHT_PIN GPIO_PIN_6
-#define BUTTON_DOWN_PORT GPIOB
-#define BUTTON_DOWN_PIN GPIO_PIN_7
 
 struct priv_t {
   /* Pointer to allocated memory holding GB file. */

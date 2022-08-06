@@ -23,7 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "emulator/emulator_hooks.h"
 #include <time.h>
-// #include "emulator/tetris.h"
+#include "config.h"
 #include "display/ili9341.h"
 #include "emulator/kirby.h"
 
@@ -97,21 +97,6 @@ int main(void) {
   MX_RTC_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
-
-#define LCD_D0 .port = GPIOA, .pin = GPIO_PIN_0
-#define LCD_D1 .port = GPIOA, .pin = GPIO_PIN_1
-#define LCD_D2 .port = GPIOA, .pin = GPIO_PIN_2
-#define LCD_D3 .port = GPIOA, .pin = GPIO_PIN_3
-#define LCD_D4 .port = GPIOA, .pin = GPIO_PIN_4
-#define LCD_D5 .port = GPIOA, .pin = GPIO_PIN_5
-#define LCD_D6 .port = GPIOA, .pin = GPIO_PIN_6
-#define LCD_D7 .port = GPIOA, .pin = GPIO_PIN_7
-
-#define LCD_RD .port = GPIOA, .pin = GPIO_PIN_8
-#define LCD_WR .port = GPIOA, .pin = GPIO_PIN_9
-#define LCD_RS .port = GPIOA, .pin = GPIO_PIN_10
-#define LCD_CS .port = GPIOA, .pin = GPIO_PIN_11
-#define LCD_RESET .port = GPIOA, .pin = GPIO_PIN_12
 
   struct ILI9341_t lcd;
   ILI9341_Init(&lcd, (struct ILI9341_Pin_t){LCD_D7},
