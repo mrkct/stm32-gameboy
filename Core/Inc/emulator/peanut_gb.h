@@ -396,27 +396,6 @@ struct gb_s
 
 	struct
 	{
-		/**
-		 * Draw line on screen.
-		 *
-		 * \param gb_s		emulator context
-		 * \param pixels	The 160 pixels to draw.
-		 * 			Bits 1-0 are the colour to draw.
-		 * 			Bits 5-4 are the palette, where:
-		 * 				OBJ0 = 0b00,
-		 * 				OBJ1 = 0b01,
-		 * 				BG = 0b10
-		 * 			Other bits are undefined.
-		 * 			Bits 5-4 are only required by front-ends
-		 * 			which want to use a different colour for
-		 * 			different object palettes. This is what
-		 * 			the Game Boy Color (CGB) does to DMG
-		 * 			games.
-		 * \param line		Line to draw pixels on. This is
-		 * guaranteed to be between 0-144 inclusive.
-		 */
-		
-
 		/* Palettes */
 		uint8_t bg_palette[4];
 		uint8_t sp_palette[8];

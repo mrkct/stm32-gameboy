@@ -252,6 +252,7 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
   auto_assign_palette(&priv, gb_colour_hash(&gb));
   gb_set_rtc(&gb, &datetime);
   gb_init_lcd(&gb);
+  gb.direct.frame_skip = 1;
 
   char title[20];
   gb_get_rom_name(&gb, title);
@@ -272,16 +273,19 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
   uint32_t last_ticks = HAL_GetTick();
   while (1) {
     static unsigned int rtc_timer = 0;
+    
+    
     ReadGamepadStatus(&gb);
     gb_run_frame(&gb);
-
+    gb_run_frame(&gb);
+    
     // Tick the internal RTC when 1 second has passed
     rtc_timer += target_speed_ms;
     if (rtc_timer >= 1000) {
       rtc_timer -= 1000;
       gb_tick_rtc(&gb);
     }
-
+    
     ILI9341_DrawFramebuffer(display, priv.fb, LCD_WIDTH, LCD_HEIGHT);
   
     frames++;
