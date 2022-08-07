@@ -53,7 +53,7 @@
 
 /* Adds more code to improve LCD rendering accuracy. */
 #ifndef PEANUT_GB_HIGH_LCD_ACCURACY
-#define PEANUT_GB_HIGH_LCD_ACCURACY 1
+#define PEANUT_GB_HIGH_LCD_ACCURACY 0
 #endif
 
 /* Interrupt masks */

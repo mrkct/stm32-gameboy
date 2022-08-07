@@ -1,9 +1,8 @@
 #include "emulator/emulator_hooks.h"
+#include "config.h"
 #include "emulator/peanut_gb.h"
 #include "stm32f4xx_hal.h"
 #include <stdio.h>
-#include "config.h"
-
 
 struct priv_t {
   /* Pointer to allocated memory holding GB file. */
@@ -233,7 +232,8 @@ static void InitializeGamepadPins() {
 
 static void ReadGamepadStatus(struct gb_s *gb) {
 // 1=button is up, 0=button is down
-#define READ_BUTTON(b) HAL_GPIO_ReadPin(b##_PORT, b##_PIN) == GPIO_PIN_SET ? 0 : 1
+#define READ_BUTTON(b)                                                         \
+  HAL_GPIO_ReadPin(b##_PORT, b##_PIN) == GPIO_PIN_SET ? 0 : 1
 
   gb->direct.joypad_bits.a = READ_BUTTON(BUTTON_A);
   gb->direct.joypad_bits.b = READ_BUTTON(BUTTON_B);
@@ -306,7 +306,7 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
 
     ILI9341_DrawFramebuffer(display, priv.fb, LCD_WIDTH, LCD_HEIGHT);
 
-    frames++;
+    frames += 2;
     if (HAL_GetTick() > last_ticks + 1000) {
       fps_counts[fps_counts_pos++] = frames;
       frames = 0;

@@ -288,54 +288,91 @@ void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[],
 #define WRITE_COMMAND_DIRECT_TO_DATA_PINS(data)                                \
   GPIOA->ODR = ((uint16_t)(data)) | ili->RST.pin | ili->RD.pin
 
+#define WR_IDLE_FAST(ili) GPIOA->BSRR = ili->WR.pin
+
   // SetDrawingArea inlined with direct register writes
   // Note that we don't call WR_ACTIVE or CD_{COMMAND, DATA} because
   // those are set with the WRITE_X_DIRECT_TO_DATA_PINS calls
   {
     // ColumnAddressSet(x1=0, x2=width)
     WRITE_COMMAND_DIRECT_TO_DATA_PINS(CMD_COLUMN_ADDRESS_SET);
-    WR_IDLE(ili);
+    WR_IDLE_FAST(ili);
 
     WRITE_DATA_DIRECT_TO_DATA_PINS(0);
-    WR_IDLE(ili);
+    WR_IDLE_FAST(ili);
 
     WRITE_DATA_DIRECT_TO_DATA_PINS(0);
-    WR_IDLE(ili);
+    WR_IDLE_FAST(ili);
 
     WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)((width - 1) >> 8));
-    WR_IDLE(ili);
+    WR_IDLE_FAST(ili);
 
     WRITE_DATA_DIRECT_TO_DATA_PINS(((uint8_t)(width - 1) & 0xff));
-    WR_IDLE(ili);
+    WR_IDLE_FAST(ili);
 
     // PageAddressSet(y1=0, y2=height)
     WRITE_COMMAND_DIRECT_TO_DATA_PINS(CMD_PAGE_ADDRESS_SET);
-    WR_IDLE(ili);
+    WR_IDLE_FAST(ili);
 
     WRITE_DATA_DIRECT_TO_DATA_PINS(0);
-    WR_IDLE(ili);
+    WR_IDLE_FAST(ili);
 
     WRITE_DATA_DIRECT_TO_DATA_PINS(0);
-    WR_IDLE(ili);
+    WR_IDLE_FAST(ili);
 
     WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)((height - 1) >> 8));
-    WR_IDLE(ili);
+    WR_IDLE_FAST(ili);
 
     WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)(height - 1) & 0xff);
-    WR_IDLE(ili);
+    WR_IDLE_FAST(ili);
   }
 
   WRITE_COMMAND_DIRECT_TO_DATA_PINS(CMD_MEMORY_WRITE);
-  WR_IDLE(ili);
+  WR_IDLE_FAST(ili);
 
   uint8_t *fb = (uint8_t *)framebuffer;
   for (int i = 0; i < 2 * width * height; i++) {
-    // Basically WriteData
-    WRITE_DATA_DIRECT_TO_DATA_PINS(fb[i]);
-    WR_IDLE(ili);
-  }
+// Basically WriteData except inlined and repeated to partially unroll this loop
+#define LOOP_BODY                                                              \
+  WRITE_DATA_DIRECT_TO_DATA_PINS(fb[i]);                                       \
+  WR_IDLE_FAST(ili);
 
-  CS_IDLE(ili);
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    i++;
+    LOOP_BODY;
+    // Warn: if you remove this function call then the display stops working
+    // I have tried replacing it with a loop wasting time, couldn't fix it so
+    // let's enjoy a flashing pin for no reason
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_12);
+  }
 }
 
 uint32_t ILI9341_ReadID(struct ILI9341_t *ili) {
