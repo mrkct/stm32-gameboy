@@ -38,6 +38,7 @@ BUILD_DIR = build
 C_SOURCES =  \
 Core/Src/display/ili9341.c \
 Core/Src/emulator/emulator_hooks.c \
+Core/Src/gamepad/gamepad.c \
 Core/Src/gui/game_selector.c \
 Core/Src/main.c \
 Core/Src/stm32f4xx_hal_msp.c \
@@ -144,6 +145,7 @@ C_INCLUDES =  \
 -ICore/Inc \
 -ICore/Inc/display \
 -ICore/Inc/emulator \
+-ICore/Inc/gamepad \
 -ICore/Inc/gui \
 -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
 -IDrivers/CMSIS/Include \

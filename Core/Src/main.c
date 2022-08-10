@@ -28,6 +28,7 @@
 #include "gui/game_selector.h"
 #include <stdio.h>
 #include <time.h>
+#include "gamepad/gamepad.h"
 
 /* USER CODE END Includes */
 
@@ -100,6 +101,8 @@ int main(void) {
   MX_SPI2_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
+
+  InitializeGamepadPins();
 
   FATFS fs;
   FRESULT res;
