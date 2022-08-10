@@ -5,10 +5,7 @@
 #include <stdio.h>
 
 struct priv_t {
-  /* Pointer to allocated memory holding GB file. */
-  uint8_t const *rom;
-  /* Pointer to allocated memory holding save file. */
-  uint8_t *cart_ram;
+  struct GameChoice *gamedata;
 
   /* Colour palette for each BG, OBJ0, and OBJ1. */
   uint16_t selected_palette[3][4];
@@ -17,18 +14,36 @@ struct priv_t {
 
 uint8_t gb_rom_read(struct gb_s *gb, const uint_fast32_t addr) {
   const struct priv_t *const p = gb->direct.priv;
-  return p->rom[addr];
+
+  FIL *file = &(p->gamedata->game);
+  uint8_t data;
+  UINT bytes_read;
+  f_lseek(file, addr);
+  f_read(file, &data, 1, &bytes_read);
+
+  return data;
 }
 
 uint8_t gb_cart_ram_read(struct gb_s *gb, const uint_fast32_t addr) {
   const struct priv_t *const p = gb->direct.priv;
-  return p->cart_ram[addr];
+
+  FIL *file = &(p->gamedata->savefile);
+  uint8_t data;
+  UINT bytes_read;
+  f_lseek(file, addr);
+  f_read(file, &data, 1, &bytes_read);
+
+  return data;
 }
 
 void gb_cart_ram_write(struct gb_s *gb, const uint_fast32_t addr,
                        const uint8_t val) {
   const struct priv_t *const p = gb->direct.priv;
-  p->cart_ram[addr] = val;
+
+  FIL *file = &(p->gamedata->savefile);
+  UINT bytes_written;
+  f_lseek(file, addr);
+  f_write(file, &val, 1, &bytes_written);
 }
 
 void gb_error(struct gb_s *gb, const enum gb_error_e gb_err,
@@ -245,12 +260,30 @@ static void ReadGamepadStatus(struct gb_s *gb) {
   gb->direct.joypad_bits.down = READ_BUTTON(BUTTON_DOWN);
 }
 
-void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
-                   uint8_t *savefile, struct tm datetime) {
+static void ensure_savefile_is_big_enough(FIL *savefile, struct gb_s *gb) {
+  int expected_save_size = gb_get_save_size(gb);
+  if (expected_save_size == 0)
+    return;
+
+  if (f_size(savefile) != expected_save_size) {
+    // Just nuke the savefile, it's invalid anyway
+    f_lseek(savefile, 0);
+
+    uint8_t zero = 0;
+    UINT written_bytes;
+    for (int i = 0; i < expected_save_size; i++) {
+      f_write(savefile, &zero, 1, &written_bytes);
+    }
+  }
+}
+
+void StartEmulator(struct ILI9341_t *display, struct GameChoice *choice,
+                   struct tm datetime) {
   InitializeGamepadPins();
 
   struct gb_s gb;
-  struct priv_t priv = {.rom = rom, .cart_ram = savefile};
+  struct priv_t priv;
+  priv.gamedata = choice;
   enum gb_init_error_e gb_ret = gb_init(&gb, &priv);
   switch (gb_ret) {
   case GB_INIT_NO_ERROR:
@@ -278,10 +311,7 @@ void StartEmulator(struct ILI9341_t *display, uint8_t const *rom,
   gb_get_rom_name(&gb, title);
   title[19] = '\0';
 
-  int save_size = gb_get_save_size(&gb);
-  if (save_size != 0 && savefile == NULL) {
-    priv.cart_ram = malloc(save_size);
-  }
+  ensure_savefile_is_big_enough(&(priv.gamedata->savefile), &gb);
 
   const double target_speed_ms = 1000.0 / VERTICAL_SYNC;
 
