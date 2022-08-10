@@ -25,10 +25,10 @@
 #include "config.h"
 #include "display/ili9341.h"
 #include "emulator/emulator_hooks.h"
+#include "gamepad/gamepad.h"
 #include "gui/game_selector.h"
 #include <stdio.h>
 #include <time.h>
-#include "gamepad/gamepad.h"
 
 /* USER CODE END Includes */
 
