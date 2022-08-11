@@ -2,70 +2,85 @@
 
 \usepackage{hyperref}
 \usepackage[italian]{babel}
-\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage[a4paper]{geometry}
 
 \title{STM32 GameBoy}
 \date{\today}
 \author{Marco Cutecchia, Edoardo Marangoni}
-
 
 \begin{document}
 \maketitle
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \section{Introduzione}
+Il GameBoy è una console portatile rilasciata da Nintendo all'inizio degli anni
+'90 che diede inizio al grandissimo successo dei videogiochi tascabili. Il
+GameBoy vendette più di 118 milioni di unità nel mondo e divenne un fenomeno
+culturale ricordato ancora oggi.
 
-Il progetto consiste nel creare un
-\href{https://it.wikipedia.org/wiki/Game_Boy}{GameBoy} utilizzando una
-scheda STM32. Il risultato sarà composto dalle parti necessarie per
-riprodurre l'esperienza originale del GameBoy, partendo ovviamente
-dall'emulatore sino al utilizzo di un case fedele al form factor
-originale. L'unica deviazione dalla riproduzione esatta sarà quella
-delle \emph{cartridge}: infatti, mentre in origine i giochi erano
-caricati sul GameBoy tramite un supporto rimovibile contenente la ROM,
-nella nostra realizzazione vi saranno a disposizione più ROM di giochi
-inseriti in una singola scheda SD, dalla quale la board potrà leggere i
-dati di gioco.
+In origine, il GameBoy caricava i giochi tramite cartucce ingombranti: un
+giocatore, pertanto, doveva avere con sé una cartuccia per ogni singolo gioco.
+Inoltre, date le possibilità in termini di costo e dimensioni del tempo, il
+GameBoy era dotato di uno schermo a cristalli liquidi monocolore e senza
+retroilluminazione. 
+
+Lo scopo del progetto è quello di costruire un'imitazione del GameBoy in grado
+di giocare tutti i videogiochi originali, ma con una serie di miglioramenti
+dovuti ai componenti hardware più moderni: utilizzeremo una microSD per
+contenere le ROM dei giochi ed useremo uno schermo a colori con risoluzione più
+alta e retroilluminato.
 
 \subsection{Costruzione}
-
 \subsubsection{Hardware}
+Il componente principale del progetto è la scheda STM32 \texttt{stm32f411ceu6},
+nota anche come \emph{WeAct BlackPill}. Questa scheda è stata scelta per due
+motivi: innanzitutto le sue dimensioni sono tali da permetterne l'inserimento
+nel case originale. In secondo luogo, la scheda utilizzata durante il corso
+(\texttt{stm32l053r8} \textit{Nucleo}), essendo dotata di $96$ KB di SRAM,
+porta a dei problemi durante l'esecuzione di alcune funzioni che, secondo
+l'analisi statica di STM32CubeIde, utilizzano $70$ KB di memoria statica: la
+scheda scelta, invece, dispone di $120$ KB di SRAM, che sono sufficienti.
 
-Il componente principale del progetto è la scheda STM32
-\texttt{stm32f411ceu6}, nota anche come \emph{WeAct BlackPill}.
-L'obiettivo finale è quello di mostrare all'utente un gioco, il quale
-verrà visualizzato su uno schermo: abbiamo scelto lo schermo
-\texttt{ili9341\ tft}, da 2.4'\,', il quale è anche dotato di una porta
-per schede microSD. L'utente, quindi, avrà modo di interagire con
-l'emulatore utilizzando la plancia di comando che sarà fedele al GameBoy
-originale, realizzata con un circuito stampato che ricalca la posizione
-dei tasti nel form factor desiderato. Il tutto andrà inserito in un
+L'obiettivo finale è quello di mostrare all'utente un gioco, il quale verrà
+visualizzato su uno schermo: abbiamo scelto lo schermo \texttt{ili9341 tft}, da
+$2.4$ pollici, il quale è anche dotato di una porta per schede microSD e offre
+un'interfaccia parallela a $8$ bit. L'utente, quindi, avrà modo di interagire
+con l'emulatore utilizzando la plancia di comando che sarà fedele al GameBoy
+originale, realizzata con un circuito stampato che ricalca la posizione dei
+tasti nel form factor desiderato. Come anticipato, l tutto andrà inserito in un
 \emph{guscio} nella forma originale.
 
 \subsubsection{Software}
+Grazie alla disponibilità online di svariate implementazioni di emulatori di
+GameBoy, adatteremo una versione open source per desktop alle necessità e ai
+limiti di un microcontrollore. In secondo luogo, implementeremo un driver per
+interfacciarci con lo schermo che abbiamo scelto, sia per mostrare il video che
+per leggere dalla microSD, utilizzando l'interfaccia SPI. Infine, sarà
+necessario gestire i segnali inviati dalla plancia di gioco, passandoli
+all'emulatore tramite GPIO. Non ultimo, sarà importante gestire il caching delle
+ROM dei giochi per rendere l'emulatore più veloce, con l'ausilio di un profiler
+per garantire un'esperienza fluida al giocatore.
 
-Grazie alla disponibilità online di svariate implementazioni di
-emulatori di GameBoy, adatteremo una versione open source per desktop
-alle necessità e ai limiti di un microcontrollore. In secondo luogo,
-implementeremo un driver per interfacciarci con lo schermo che abbiamo
-scelto, sia per mostrare il video che per leggere dalla microSD. Infine,
-sarà necessario gestire i segnali inviati dalla plancia di gioco,
-passandoli all'emulatore. Non ultimo, sarà importante gestire il caching
-delle ROM dei giochi per rendere l'emulatore più veloce.
+\subsubsection{Utilità}
+Benché questo progetto sia realizzato ad uno scopo puramente creativo, può
+servire ad appassionati di retrogaming come prototipo per una propria
+realizzazione, in quanto molte delle imitazioni che si trovano online, benché
+mantengano il \textit{form factor} del GameBoy originale, non permettono di
+giocare ai giochi originali. 
 
 \subsubsection{Costi}
-
-
+\begin{center}
 \begin{table}[h]
 \begin{tabular}{|llll|l|}
 \hline
-\multicolumn{1}{|l|}{Nome}             & \multicolumn{1}{l|}{Modello}                           & \multicolumn{1}{l|}{Costo unitario} & Unità & Costo \\ \hline
-\multicolumn{1}{|l|}{Guscio esterno}   & \multicolumn{1}{l|}{GameBoy DMG-01 housing shell}      & \multicolumn{1}{l|}{xxx}            & 1     & xxx   \\ \hline
-\multicolumn{1}{|l|}{Plancia di gioco} & \multicolumn{1}{l|}{GameBoy DMG-01 PCB}                & \multicolumn{1}{l|}{xxx}            & 1     & xxx   \\ \hline
-\multicolumn{1}{|l|}{Bottoni}          & \multicolumn{1}{l|}{GameBoy DMG-01 rubber button pads} & \multicolumn{1}{l|}{xxx}            & 1     & xxx   \\ \hline
-\multicolumn{1}{|l|}{Schermo}          & \multicolumn{1}{l|}{ili9341 tft 2.4''}                 & \multicolumn{1}{l|}{xxx}            & 1     & xxx   \\ \hline
-\multicolumn{1}{|l|}{Microcontrollore} & \multicolumn{1}{l|}{stm32f411ceu6}                     & \multicolumn{1}{l|}{xxx}            & 1     & xxx   \\ \hline
-\multicolumn{4}{|l|}{Totale}                                                                                                                  &       \\ \hline
+\multicolumn{1}{|l|}{\textbf{Nome}}    & \multicolumn{1}{l|}{\textbf{Modello}}             & \multicolumn{1}{l|}{\textbf{Costo unitario}} & \textbf{Unità} & \textbf{Costo} \\ \hline
+\multicolumn{1}{|l|}{Guscio esterno}   & \multicolumn{1}{l|}{GB DMG-01 shell}      & \multicolumn{1}{l|}{xxx}                     & 1              & xxx            \\ \hline
+\multicolumn{1}{|l|}{Plancia di gioco} & \multicolumn{1}{l|}{GB DMG-01 PCB}                & \multicolumn{1}{l|}{xxx}                     & 1              & xxx            \\ \hline
+\multicolumn{1}{|l|}{Bottoni}          & \multicolumn{1}{l|}{GB DMG-01 buttons} & \multicolumn{1}{l|}{xxx}                     & 1              & xxx            \\ \hline
+\multicolumn{1}{|l|}{Schermo}          & \multicolumn{1}{l|}{ili9341 tft 2.4''}            & \multicolumn{1}{l|}{xxx}                     & 1              & xxx            \\ \hline
+\multicolumn{1}{|l|}{Microcontrollore} & \multicolumn{1}{l|}{stm32f411ceu6}                & \multicolumn{1}{l|}{xxx}                     & 1              & xxx            \\ \hline
+\multicolumn{4}{|r|}{\textbf{Totale}}                                                                                                                               &                \\ \hline
 \end{tabular}
 \end{table}
+\end{center}
 \end{document}
