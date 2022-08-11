@@ -32,14 +32,14 @@ alta e retroilluminato.
 
 \subsection{Costruzione}
 \subsubsection{Hardware}
-Il componente principale del progetto è la scheda STM32 \texttt{stm32f411ceu6},
-nota anche come \emph{WeAct BlackPill}. Questa scheda è stata scelta per due
+Il componente principale del progetto è la scheda \emph{WeAct BlackPill}, basata
+sul SOC STM32 \texttt{stm32f411ceu6}. Questa scheda è stata scelta per due
 motivi: innanzitutto le sue dimensioni sono tali da permetterne l'inserimento
 nel case originale. In secondo luogo, la scheda utilizzata durante il corso
-(\texttt{stm32l053r8} \textit{Nucleo}), essendo dotata di $96$ KB di SRAM,
-porta a dei problemi durante l'esecuzione di alcune funzioni che, secondo
-l'analisi statica di STM32CubeIde, utilizzano $70$ KB di memoria statica: la
-scheda scelta, invece, dispone di $120$ KB di SRAM, che sono sufficienti.
+(\texttt{stm32l053r8} \textit{Nucleo}), essendo dotata di $8$ KB di SRAM, porta
+a dei problemi durante l'esecuzione di alcune funzioni che, secondo l'analisi
+statica di STM32CubeIde, utilizzano fino a $70$ KB di memoria statica: la scheda scelta,
+invece, dispone di $120$ KB di SRAM, che sono sufficienti.
 
 L'obiettivo finale è quello di mostrare all'utente un gioco, il quale verrà
 visualizzato su uno schermo: abbiamo scelto lo schermo \texttt{ili9341 tft}, da
@@ -82,5 +82,24 @@ giocare ai giochi originali.
 \multicolumn{4}{|r|}{\textbf{Totale}}                                                                                                                               &                \\ \hline
 \end{tabular}
 \end{table}
+\end{center}
+
+\subsubsection{Tempo}
+\begin{center}
+\begin{table}[h]
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Nome}                         & \textbf{Tempo} \\ \hline
+porting emulatore                     & xxx            \\ \hline
+driver display                        & xxx            \\ \hline
+integrazione PCB-emulatore            & xxx            \\ \hline
+caricamento videogiochi da SD         & xxx            \\ \hline
+interfaccia selezione videogioco      & xxx            \\ \hline
+ottimizzazione software               & xxx            \\ \hline
+sistema di alimentazione              & xxx            \\ \hline
+\multicolumn{1}{|r|}{\textbf{Totale}} & xxx            \\ \hline
+\end{tabular}
+\end{table}
+
 \end{center}
 \end{document}
