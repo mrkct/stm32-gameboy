@@ -1,11 +1,15 @@
 #include "emulator/emulator_hooks.h"
 #include "config.h"
+#include "disk_cache.h"
 #include "emulator/peanut_gb.h"
+#include "gamepad/gamepad.h"
 #include "stm32f4xx_hal.h"
 #include <stdio.h>
-#include "gamepad/gamepad.h"
+
+struct Cache cache;
 
 struct priv_t {
+
   struct GameChoice *gamedata;
 
   /* Colour palette for each BG, OBJ0, and OBJ1. */
@@ -14,18 +18,15 @@ struct priv_t {
 };
 
 uint8_t gb_rom_read(struct gb_s *gb, const uint_fast32_t addr) {
-  const struct priv_t *const p = gb->direct.priv;
-
-  FIL *file = &(p->gamedata->game);
-  uint8_t data;
-  UINT bytes_read;
-  f_lseek(file, addr);
-  f_read(file, &data, 1, &bytes_read);
-
-  return data;
+  uint8_t *sector = GetSector(&cache, addr / SECTOR_SIZE);
+  return sector[addr % SECTOR_SIZE];
 }
 
+static volatile int ram_read = 0;
+static volatile int ram_write = 0;
+
 uint8_t gb_cart_ram_read(struct gb_s *gb, const uint_fast32_t addr) {
+  ram_read++;
   const struct priv_t *const p = gb->direct.priv;
 
   FIL *file = &(p->gamedata->savefile);
@@ -39,6 +40,7 @@ uint8_t gb_cart_ram_read(struct gb_s *gb, const uint_fast32_t addr) {
 
 void gb_cart_ram_write(struct gb_s *gb, const uint_fast32_t addr,
                        const uint8_t val) {
+  ram_write++;
   const struct priv_t *const p = gb->direct.priv;
 
   FIL *file = &(p->gamedata->savefile);
@@ -242,6 +244,8 @@ static void ensure_savefile_is_big_enough(FIL *savefile, struct gb_s *gb) {
 
 void StartEmulator(struct ILI9341_t *display, struct GameChoice *choice,
                    struct tm datetime) {
+  InitializeCache(&cache, &(choice->game));
+
   struct gb_s gb;
   struct priv_t priv;
   priv.gamedata = choice;

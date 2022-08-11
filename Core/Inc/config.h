@@ -3,7 +3,6 @@
 
 #include "stm32f4xx_hal.h"
 
-
 // Display pins
 // WARNING: The function to move the framebuffer to the display
 // is hardcoded to use these exact pins for performance reasons
@@ -44,7 +43,11 @@
 // Note that these are used by the external SD card driver,
 // I didn't choose the names
 #define SD_SPI_HANDLE hspi2
+// ^This implies PB10 -> SCK, PB14 -> MISO/DO, PB15 -> MOSI/DI
 #define SD_CS_GPIO_Port GPIOB
 #define SD_CS_Pin GPIO_PIN_8
+
+#define SECTOR_SIZE 1024
+#define SECTOR_CACHE 20
 
 #endif

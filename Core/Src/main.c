@@ -107,7 +107,7 @@ int main(void) {
   FATFS fs;
   FRESULT res;
 
-  HAL_Delay(1500);
+  HAL_Delay(2500);
 
   res = f_mount(&fs, "", 1);
   if (res != FR_OK) {
