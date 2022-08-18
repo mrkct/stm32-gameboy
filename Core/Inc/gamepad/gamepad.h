@@ -3,10 +3,12 @@
 
 #include <stdint.h>
 
-
-struct Gamepad {
-  union {
-    struct {
+struct Gamepad
+{
+  union
+  {
+    struct
+    {
       unsigned a : 1;
       unsigned b : 1;
       unsigned select : 1;
@@ -20,7 +22,7 @@ struct Gamepad {
   };
 };
 
-void InitializeGamepadPins();
-struct Gamepad ReadGamepadStatus();
+void InitializeGamepadPins ();
+struct Gamepad ReadGamepadStatus ();
 
 #endif
