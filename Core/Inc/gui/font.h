@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define FONT_WIDTH 8
+#define FONT_HEIGHT 9
+
 typedef struct
 {
   uint32_t magic;
