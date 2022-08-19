@@ -1,10 +1,9 @@
-#include "font.h"
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "gui/font.h"
 
+
+static uint16_t unicode_map[256];
 uint16_t *
-PSF_Init()
+PSF_Init ()
 {
 #ifdef DEBUG
   printf ("Initializing psf font...\n");
@@ -21,7 +20,6 @@ PSF_Init()
   unsigned char *p
       = (unsigned char *)(font_bytes + font->headersize
                           + font->num_glyphs * font->bytes_per_glyph);
-  uint16_t *unicode_map = calloc (USHRT_MAX, 2);
   uint16_t glyph = 0;
   while (p <= (font_bytes + font_bytes_len))
     {

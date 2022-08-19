@@ -1,8 +1,7 @@
-#include "frame.h"
-#include "font.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "gui/frame.h"
+#include "display/ili9341.h"
+#include "gui/font.h"
+#include <stdint.h>
 
 static uint16_t *unicode_map;
 
@@ -10,31 +9,30 @@ struct FrameImp
 {
   unsigned short int width;
   unsigned short int height;
-  uint16_t *buffer;
+  uint16_t buffer[DISPLAY_WIDTH * DISPLAY_HEIGHT];
 };
+
+static struct FrameImp _globl_frame;
 
 Frame
 Frame_New (unsigned short int width, unsigned short int height, uint16_t bg)
 {
   if (unicode_map == NULL)
     {
-      unicode_map = psf_init ();
+      unicode_map = PSF_Init ();
     }
-  struct FrameImp *ret = malloc (sizeof (struct FrameImp));
-  ret->width = width;
-  ret->height = height;
-  ret->buffer = calloc (height * width, 2);
+  _globl_frame.width = width;
+  _globl_frame.height = height;
   for (unsigned int i = 0; i < width * height; i++)
     {
-      ret->buffer[i] = bg;
+      _globl_frame.buffer[i] = bg;
     }
-  return ret;
+  return &_globl_frame;
 }
 
 void
 Frame_Clear (Frame frame, uint16_t bg)
 {
-  frame->buffer = calloc (frame->height * frame->width, 2);
   for (unsigned int i = 0; i < frame->width * frame->height; i++)
     {
       frame->buffer[i] = bg;
@@ -51,7 +49,7 @@ Frame_Fits (Frame frame)
 
 static void
 frame_putchar (Frame frame, char c, unsigned short int line,
-                unsigned short int col, unsigned int bg, unsigned int fg)
+               unsigned short int col, unsigned int bg, unsigned int fg)
 {
 
 #ifdef DEBUG
@@ -105,9 +103,8 @@ Frame_AddLine (Frame frame, char *name, unsigned short int line,
   int name_len = strlen (name);
   if (selected)
     {
-      char *new_name = malloc (name_len + strlen (">"));
-      sprintf (new_name, ">%s", name);
-      name = new_name;
+      frame_putchar (frame, '>', line, col, (2 << 15) - 1, 0);
+      col++;
     }
   int to_print = name_len > frame->width ? frame->width : name_len;
   for (int i = 0; i < to_print; i++)
