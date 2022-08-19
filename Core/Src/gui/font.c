@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-unsigned char font_bytes[] = {
+const unsigned char font_bytes[] = {
   
  0x72, 0xb5, 0x4a, 0x86,   /* Magic */
  0x00, 0x00, 0x00, 0x00,   /* Version */
