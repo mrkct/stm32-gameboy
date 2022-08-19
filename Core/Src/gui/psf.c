@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 uint16_t *
-psf_init ()
+PSF_Init()
 {
 #ifdef DEBUG
   printf ("Initializing psf font...\n");
