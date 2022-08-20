@@ -21,11 +21,11 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
 {
 
   // Load the font and the unicode_map.
-  PSF_Init ();
+  //PSF_Init ();
 
   // Build the representation of the frame.
   uint16_t bg = (2 << 15) - 1;
-  Frame frame = Frame_New (DISPLAY_HEIGHT, DISPLAY_WIDTH, bg);
+  Frame frame = Frame_New (DISPLAY_WIDTH, DISPLAY_HEIGHT, bg);
 
   unsigned short int selected = 0;
   unsigned short int found_games;
@@ -83,6 +83,8 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
                   Frame_AddLine (frame, games[i], i + 1, 1, FALSE);
                 }
             }
+          ILI9341_DrawFramebuffer (display, Frame_Draw (frame), DISPLAY_WIDTH,
+                                   DISPLAY_HEIGHT);
         }
     }
 }
