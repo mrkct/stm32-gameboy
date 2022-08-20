@@ -64,7 +64,16 @@ Middlewares/Third_Party/FatFs/src/diskio.c \
 Middlewares/Third_Party/FatFs/src/ff.c \
 Middlewares/Third_Party/FatFs/src/ff_gen_drv.c \
 Middlewares/Third_Party/FatFs/src/option/syscall.c \
-Middlewares/Third_Party/FatFs/src/option/ccsbcs.c
+Middlewares/Third_Party/FatFs/src/option/ccsbcs.c \
+FATFS/Target/user_diskio_spi.c \
+Core/Src/display/ili9341.c \
+Core/Src/emulator/emulator_hooks.c \
+Core/Src/gamepad/gamepad.c \
+Core/Src/gui/font.c \
+Core/Src/gui/frame.c \
+Core/Src/gui/game_selector.c \
+Core/Src/gui/psf.c \
+Core/Src/gui/disk_cache.c
 
 # ASM sources
 ASM_SOURCES =  \
