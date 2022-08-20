@@ -1,10 +1,9 @@
 #include "gui/font.h"
 
-
-static uint16_t unicode_map[256];
 uint16_t *
 PSF_Init ()
 {
+  static uint16_t unicode_map[256];
 #ifdef DEBUG
   printf ("Initializing psf font...\n");
 #endif
