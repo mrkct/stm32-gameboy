@@ -127,6 +127,7 @@ int main(void) {
                (struct ILI9341_Pin_t){LCD_CS}, (struct ILI9341_Pin_t){LCD_RS},
                (struct ILI9341_Pin_t){LCD_WR}, (struct ILI9341_Pin_t){LCD_RD});
   ILI9341_SendInitializationSequence(&lcd);
+  ILI9341_SetOrientation(&lcd, HORIZONTAL);
 
   struct GameChoice choice;
   GameSelectionMenu(&lcd, &choice);
