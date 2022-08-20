@@ -3,13 +3,17 @@
 #include "gamepad/gamepad.h"
 #include "gui/font.h"
 #include "gui/frame.h"
+#include <stdio.h>
 #include <string.h>
 
 #define TRUE 1
 #define FALSE 0
 
-#define SCREEN_LINES DISPLAY_HEIGHT / FONT_HEIGHT
-#define SCREEN_COLUMNS DISPLAY_WIDTH / FONT_WIDTH
+#define SCREEN_HEIGHT (DISPLAY_HEIGHT / 2)
+#define SCREEN_WIDTH (DISPLAY_WIDTH / 2)
+
+#define SCREEN_LINES (SCREEN_HEIGHT / FONT_HEIGHT)
+#define SCREEN_COLUMNS (SCREEN_WIDTH / FONT_WIDTH)
 
 static FRESULT find_games (unsigned short int from, unsigned short int to_find,
                            unsigned short int *found, char *path);
@@ -21,20 +25,22 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
 {
 
   // Load the font and the unicode_map.
-  //PSF_Init ();
+  // PSF_Init ();
 
   // Build the representation of the frame.
   uint16_t bg = (2 << 15) - 1;
-  Frame frame = Frame_New (DISPLAY_WIDTH, DISPLAY_HEIGHT, bg);
+  uint16_t buf[SCREEN_WIDTH * SCREEN_HEIGHT] = { 0 };
+  char path[256] = "";
+  Frame frame = Frame_New (SCREEN_WIDTH, SCREEN_HEIGHT, buf, bg);
 
   unsigned short int selected = 0;
   unsigned short int found_games;
-
+  unsigned short int wait_millis = 250;
+  unsigned int last_command_millis = HAL_GetTick ();
   for (;;)
     {
-
       found_games = 0;
-      find_games (selected, SCREEN_LINES, &found_games, "");
+      find_games (selected, SCREEN_LINES, &found_games, path);
 
       // Putting this in the loop won't allow an hot swap of the SD, unless the
       // display driver has a mechanism to automatically load it..
@@ -47,23 +53,26 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
         {
           struct Gamepad gp = ReadGamepadStatus ();
 
-          if (gp.joypad)
+          if (gp.joypad != (1 << 8) - 1
+              && (HAL_GetTick () - last_command_millis) >= wait_millis)
             {
-              if (gp.joypad_bits.down)
+
+              last_command_millis = HAL_GetTick ();
+              if (!gp.joypad_bits.down)
                 {
                   if (selected != 0)
                     {
                       selected -= 1;
                     }
                 }
-              else if (gp.joypad_bits.up)
+              else if (!gp.joypad_bits.up)
                 {
                   if (selected != found_games - 1)
                     {
                       selected += 1;
                     }
                 }
-              else if (gp.joypad_bits.start)
+              else if (!gp.joypad_bits.start)
                 {
                   break;
                 }
@@ -83,8 +92,9 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
                   Frame_AddLine (frame, games[i], i + 1, 1, FALSE);
                 }
             }
-          ILI9341_DrawFramebuffer (display, Frame_Draw (frame), DISPLAY_WIDTH,
-                                   DISPLAY_HEIGHT);
+          ILI9341_DrawFramebuffer (display, Frame_Draw (frame), SCREEN_WIDTH,
+                                   SCREEN_HEIGHT);
+          HAL_Delay (250);
         }
     }
 }
@@ -112,7 +122,7 @@ find_games (unsigned short int from, unsigned short int to_find,
               if (fno.fattrib & AM_DIR)
                 {
                   pathlen = strlen (path);
-                  sprintf (&path[i], "/%s", fno.fname);
+                  sprintf (&path[pathlen], "/%s", fno.fname);
                   res = find_games (0, to_find - *found, found, path);
                   if (res != FR_OK)
                     break;
@@ -121,7 +131,8 @@ find_games (unsigned short int from, unsigned short int to_find,
               else
                 {
                   const char *ext = strrchr (fno.fname, '.') + 1;
-                  if (strcmp (ext, "gba") || strcmp (ext, "GBA"))
+                  if (strcmp (ext, "gb") || strcmp (ext, "GB")
+                      || strcmp (ext, "gbc") || strcmp (ext, "GBC"))
                     {
 
                       char *name = fno.fname;

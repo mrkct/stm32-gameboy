@@ -5,7 +5,7 @@ struct FrameImp;
 typedef struct FrameImp *Frame;
 
 Frame Frame_New (unsigned short int width, unsigned short int height,
-                 uint16_t bg);
+                 uint16_t *buffer, uint16_t bg);
 
 void Frame_Clear (Frame frame, uint16_t bg);
 

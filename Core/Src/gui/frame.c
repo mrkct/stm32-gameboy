@@ -2,6 +2,9 @@
 #include "display/ili9341.h"
 #include "gui/font.h"
 #include <stdint.h>
+#include <string.h> 
+#include <stdlib.h> 
+#include <stdio.h> 
 
 //static uint16_t *unicode_map;
 
@@ -9,13 +12,13 @@ struct FrameImp
 {
   unsigned short int width;
   unsigned short int height;
-  uint16_t buffer[DISPLAY_WIDTH * DISPLAY_HEIGHT];
+  uint16_t *buffer;
 };
 
 static struct FrameImp _globl_frame;
 
 Frame
-Frame_New (unsigned short int width, unsigned short int height, uint16_t bg)
+Frame_New (unsigned short int width, unsigned short int height, uint16_t* buffer, uint16_t bg)
 {
   //  if (unicode_map == NULL)
   //    {
@@ -23,6 +26,7 @@ Frame_New (unsigned short int width, unsigned short int height, uint16_t bg)
   //    }
   _globl_frame.width = width;
   _globl_frame.height = height;
+  _globl_frame.buffer = buffer;
   for (unsigned int i = 0; i < width * height; i++)
     {
       _globl_frame.buffer[i] = bg;
