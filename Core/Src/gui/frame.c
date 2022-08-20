@@ -3,7 +3,7 @@
 #include "gui/font.h"
 #include <stdint.h>
 
-static uint16_t *unicode_map;
+//static uint16_t *unicode_map;
 
 struct FrameImp
 {
@@ -17,10 +17,10 @@ static struct FrameImp _globl_frame;
 Frame
 Frame_New (unsigned short int width, unsigned short int height, uint16_t bg)
 {
-  if (unicode_map == NULL)
-    {
-      unicode_map = PSF_Init ();
-    }
+  //  if (unicode_map == NULL)
+  //    {
+  //      unicode_map = PSF_Init ();
+  //    }
   _globl_frame.width = width;
   _globl_frame.height = height;
   for (unsigned int i = 0; i < width * height; i++)
@@ -58,10 +58,10 @@ frame_putchar (Frame frame, char c, unsigned short int line,
 
   PSF_font *font = (PSF_font *)font_bytes;
 
-  if (unicode_map != NULL)
-    {
-      c = unicode_map[c];
-    }
+  //  if (unicode_map != NULL)
+  //    {
+  //      c = unicode_map[c];
+  //    }
   unsigned char *glyph
       = (unsigned char *)&font_bytes + font->headersize
         + (c > 0 && c < font->num_glyphs ? c : 0) * font->bytes_per_glyph;

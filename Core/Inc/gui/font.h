@@ -22,6 +22,6 @@ extern unsigned char font_bytes[];
 extern unsigned int font_bytes_len;
 
 // Returns the unicode map or NULL
-uint16_t *PSF_Init ();
+//uint16_t *PSF_Init ();
 
 #endif
