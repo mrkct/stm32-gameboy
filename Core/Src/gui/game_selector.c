@@ -3,6 +3,7 @@
 #include "gamepad/gamepad.h"
 #include "gui/font.h"
 #include "gui/frame.h"
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -23,6 +24,11 @@ static char games[SCREEN_LINES][SCREEN_COLUMNS + 1];
 void
 GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
 {
+#if DEBUG_JUMP_TO_GAME
+  f_open(&choice->game, "KIRBY_DREAMLAND.gb", FA_READ);
+  f_open(&choice->savefile, "KIRBY_DREAMLAND.sav", FA_CREATE_ALWAYS | FA_READ | FA_WRITE);
+  return;
+#endif
 
   // Load the font and the unicode_map.
   // PSF_Init ();

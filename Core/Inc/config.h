@@ -3,6 +3,8 @@
 
 #include "stm32f4xx_hal.h"
 
+#define DEBUG_JUMP_TO_GAME 0
+
 // Display pins
 // WARNING: The function to move the framebuffer to the display
 // is hardcoded to use these exact pins for performance reasons
