@@ -47,7 +47,7 @@
 #define SD_CS_GPIO_Port GPIOB
 #define SD_CS_Pin GPIO_PIN_8
 
-#define SECTOR_SIZE 1024
-#define SECTOR_CACHE 20
+#define SECTOR_SIZE 512
+#define SECTOR_CACHE 40
 
 #endif
