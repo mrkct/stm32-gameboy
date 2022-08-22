@@ -280,8 +280,8 @@ void ILI9341_SetDrawingArea(struct ILI9341_t *ili, uint16_t x1, uint16_t x2,
                                       (uint8_t)(y2 >> 8), (uint8_t)y2 & 0xff);
 }
 
-void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[],
-                             uint16_t width, uint16_t height) {
+void ILI9341_DrawFramebufferScaled(struct ILI9341_t *ili, uint16_t framebuffer[])
+{
 
 // WARN: This assumes that D0 -> PA0, D1 -> PA1, D2 -> PA2 ... D7 -> PA7
 #define WRITE_DATA_DIRECT_TO_DATA_PINS(data)                                   \
@@ -291,6 +291,19 @@ void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[],
   GPIOA->ODR = ((uint16_t)(data)) | ili->RST.pin | ili->RD.pin
 
 #define WR_IDLE_FAST(ili) GPIOA->BSRR = ili->WR.pin
+
+#define COLOR_AVERAGE(x, y)  (uint16_t) (((uint32_t) (x) + (uint32_t) (y)) / 2)
+
+#define WRITE_PIXEL(p) \
+  WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t) ((p) >> 8)); \
+      WR_IDLE_FAST(ili); \
+      WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t) (p)); \
+      WR_IDLE_FAST(ili);
+
+  const int FB_WIDTH = 160;
+  const int FB_HEIGHT = 144;
+  const int SCALED_WIDTH = 240;
+  const int SCALED_HEIGHT = 216;
 
   // SetDrawingArea inlined with direct register writes
   // Note that we don't call WR_ACTIVE or CD_{COMMAND, DATA} because
@@ -306,10 +319,10 @@ void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[],
     WRITE_DATA_DIRECT_TO_DATA_PINS(0);
     WR_IDLE_FAST(ili);
 
-    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)((width - 1) >> 8));
+    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)((SCALED_WIDTH - 1) >> 8));
     WR_IDLE_FAST(ili);
 
-    WRITE_DATA_DIRECT_TO_DATA_PINS(((uint8_t)(width - 1) & 0xff));
+    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)((SCALED_WIDTH - 1) & 0xff));
     WR_IDLE_FAST(ili);
 
     // PageAddressSet(y1=0, y2=height)
@@ -322,58 +335,46 @@ void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[],
     WRITE_DATA_DIRECT_TO_DATA_PINS(0);
     WR_IDLE_FAST(ili);
 
-    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)((height - 1) >> 8));
+    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)(SCALED_HEIGHT - 1) >> 8);
     WR_IDLE_FAST(ili);
 
-    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)(height - 1) & 0xff);
+    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)(SCALED_HEIGHT - 1) & 0xff);
     WR_IDLE_FAST(ili);
   }
 
   WRITE_COMMAND_DIRECT_TO_DATA_PINS(CMD_MEMORY_WRITE);
   WR_IDLE_FAST(ili);
 
-  uint8_t *fb = (uint8_t *)framebuffer;
-  for (int i = 0; i < 2 * width * height; i++) {
-// Basically WriteData except inlined and repeated to partially unroll this loop
-#define LOOP_BODY                                                              \
-  WRITE_DATA_DIRECT_TO_DATA_PINS(fb[i]);                                       \
-  WR_IDLE_FAST(ili);
+  int i = 0;
+  HAL_Delay(1);
+  while (i < FB_WIDTH * FB_HEIGHT) {
+    for (int j = i; j < i + FB_WIDTH; j += 2) {
+      WRITE_PIXEL(framebuffer[j]);
+      WRITE_PIXEL(framebuffer[j + 1]);
 
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    i++;
-    LOOP_BODY;
-    // Warn: if you remove this function call then the display stops working
-    // I have tried replacing it with a loop wasting time, couldn't fix it so
-    // let's enjoy a flashing pin for no reason
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_12);
+      // TODO: Calculate average color with the next pixel
+      WRITE_PIXEL(framebuffer[j + 1]);
+    }
+    i += FB_WIDTH;
+
+    for (int j = i; j < i + FB_WIDTH; j += 2) {
+      WRITE_PIXEL(framebuffer[j]);
+      WRITE_PIXEL(framebuffer[j + 1]);
+
+      // TODO: Calculate average color with the next pixel
+      WRITE_PIXEL(framebuffer[j + 1]);
+    }
+    i += FB_WIDTH;
+
+    // Approximated row for scaling
+    for (int j = i; j < i + FB_WIDTH; j += 2) {
+      WRITE_PIXEL(framebuffer[j]);
+      WRITE_PIXEL(framebuffer[j + 1]);
+    
+      // TODO: Calculate average color between top-left, top-right, bottom-left, bottom-right pixels
+      WRITE_PIXEL(framebuffer[j + 1]);
+    }
+    // Don't step 'i' here because we haven't printed a "real" row!
   }
 }
 

@@ -36,8 +36,7 @@ void ILI9341_SendInitializationSequence(struct ILI9341_t *ili);
 
 uint32_t ILI9341_ReadID(struct ILI9341_t *ili);
 
-void ILI9341_DrawFramebuffer(struct ILI9341_t *ili, uint16_t framebuffer[],
-                             uint16_t width, uint16_t height);
+void ILI9341_DrawFramebufferScaled(struct ILI9341_t *ili, uint16_t framebuffer[]);
 
 void ILI9341_SetDrawingArea(struct ILI9341_t *ili, uint16_t x1, uint16_t x2,
                             uint16_t y1, uint16_t y2);

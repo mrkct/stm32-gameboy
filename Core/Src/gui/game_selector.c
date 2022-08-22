@@ -98,8 +98,7 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
                   Frame_AddLine (frame, games[i], i + 1, 1, FALSE);
                 }
             }
-          ILI9341_DrawFramebuffer (display, Frame_Draw (frame), SCREEN_WIDTH,
-                                   SCREEN_HEIGHT);
+          ILI9341_DrawFramebufferScaled (display, Frame_Draw (frame));
           HAL_Delay (250);
         }
     }

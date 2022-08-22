@@ -299,7 +299,7 @@ void StartEmulator(struct ILI9341_t *display, struct GameChoice *choice,
       gb_tick_rtc(&gb);
     }
 
-    ILI9341_DrawFramebuffer(display, priv.fb, LCD_WIDTH, LCD_HEIGHT);
+    ILI9341_DrawFramebufferScaled(display, priv.fb);
 
     frames += 2;
     if (HAL_GetTick() > last_ticks + 1000) {
