@@ -111,9 +111,9 @@ Frame_AddLine (Frame frame, char *name, unsigned short int line,
       frame_putchar (frame, '>', line, col, (2 << 15) - 1, 0);
       col++;
     }
-  int to_print = (col + name_len > (SCREEN_COLUMNS - (col + 1)))
+  int to_print = (col + name_len > SCREEN_COLUMNS)
                      ? (SCREEN_COLUMNS - (col + 1))
-                     : name_len;
+                     : (name_len - (col + 1));
   for (int i = 0; i < to_print; i++)
     {
       frame_putchar (frame, name[i], line, col + i, (2 << 15) - 1, 0);
