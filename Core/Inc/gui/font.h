@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #define FONT_WIDTH 8
-#define FONT_HEIGHT 9
+#define FONT_HEIGHT 8
 
 typedef struct
 {
