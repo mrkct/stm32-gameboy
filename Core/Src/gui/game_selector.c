@@ -1,9 +1,9 @@
 #include "gui/game_selector.h"
+#include "config.h"
 #include "display/ili9341.h"
 #include "gamepad/gamepad.h"
 #include "gui/font.h"
 #include "gui/frame.h"
-#include "config.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -16,8 +16,11 @@
 #define SCREEN_LINES (SCREEN_HEIGHT / FONT_HEIGHT)
 #define SCREEN_COLUMNS (SCREEN_WIDTH / FONT_WIDTH)
 
-static FRESULT find_games (unsigned short int from, unsigned short int to_find,
-                           unsigned short int *found, char *path);
+static FRESULT find_games (unsigned short int, unsigned short int,
+                           unsigned short int *, char *);
+
+static FRESULT choose_game (unsigned short int, struct GameChoice *,
+                            unsigned short int *, char *, bool *);
 
 static char games[SCREEN_LINES][SCREEN_COLUMNS + 1];
 
@@ -25,8 +28,9 @@ void
 GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
 {
 #if DEBUG_JUMP_TO_GAME
-  f_open(&choice->game, "KIRBY_DREAMLAND.gb", FA_READ);
-  f_open(&choice->savefile, "KIRBY_DREAMLAND.sav", FA_CREATE_ALWAYS | FA_READ | FA_WRITE);
+  f_open (&choice->game, "KIRBY_DREAMLAND.gb", FA_READ);
+  f_open (&choice->savefile, "KIRBY_DREAMLAND.sav",
+          FA_CREATE_ALWAYS | FA_READ | FA_WRITE);
   return;
 #endif
 
@@ -40,9 +44,10 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
   Frame frame = Frame_New (SCREEN_WIDTH, SCREEN_HEIGHT, buf, bg);
 
   unsigned short int selected = 0;
-  unsigned short int found_games;
+  unsigned short int found_games = 0;
   unsigned short int wait_millis = 250;
   unsigned int last_command_millis = HAL_GetTick ();
+
   for (;;)
     {
       found_games = 0;
@@ -102,6 +107,9 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
           HAL_Delay (250);
         }
     }
+
+  found_games = 0;
+  choose_game (selected, choice, &found_games, path);
 }
 
 static FRESULT
@@ -110,59 +118,133 @@ find_games (unsigned short int from, unsigned short int to_find,
 {
   FRESULT res;
   DIR dir;
-  unsigned short int pathlen, i;
+  unsigned short int pathlen, gb_games_seen = 0;
   static FILINFO fno;
 
   res = f_opendir (&dir, path);
   if (res == FR_OK)
     {
-      // We need to track new names iff i >= from
-      for (i = 0; i < from + to_find; i--)
+      while (1)
         {
-          if (i >= from)
+          res = f_readdir (&dir, &fno);
+
+          // Nothing left to be read
+          if (res != FR_OK || fno.fname[0] == 0)
+            break;
+
+          if (fno.fattrib & AM_DIR)
             {
-              res = f_readdir (&dir, &fno);
-              if (res != FR_OK || fno.fname[0] == 0)
+              pathlen = strlen (path);
+              sprintf (&path[pathlen], "/%s", fno.fname);
+              res = find_games (0, to_find - *found, found, path);
+              if (res != FR_OK)
                 break;
-              if (fno.fattrib & AM_DIR)
+              path[pathlen] = 0;
+            }
+          else
+            {
+              const char *ext = strrchr (fno.fname, '.') + 1;
+              if (strcmp (ext, "gb") || strcmp (ext, "GB")
+                  || strcmp (ext, "gbc") || strcmp (ext, "GBC"))
                 {
-                  pathlen = strlen (path);
-                  sprintf (&path[pathlen], "/%s", fno.fname);
-                  res = find_games (0, to_find - *found, found, path);
-                  if (res != FR_OK)
-                    break;
-                  path[i] = 0;
-                }
-              else
-                {
-                  const char *ext = strrchr (fno.fname, '.') + 1;
-                  if (strcmp (ext, "gb") || strcmp (ext, "GB")
-                      || strcmp (ext, "gbc") || strcmp (ext, "GBC"))
+                  char *name = fno.fname;
+
+                  // Save the name only iff it's the "from"-th game or more..
+                  if (gb_games_seen < from)
+                    {
+                      gb_games_seen++;
+                      continue;
+                    }
+                  unsigned short int len = strlen (name);
+                  for (int i = 0; i < SCREEN_COLUMNS; i++)
                     {
 
-                      char *name = fno.fname;
-                      unsigned short int len = strlen (name);
-                      for (int i = 0; i < SCREEN_COLUMNS; i++)
+                      if (i < len)
                         {
-
-                          if (i < len)
-                            {
-                              games[*found][i] = name[i];
-                            }
-                          else
-                            {
-                              games[*found][i] = 0;
-                            }
+                          games[*found][i] = name[i];
                         }
-                      games[*found][SCREEN_COLUMNS] = 0;
-                      (*found)++;
+                      else
+                        {
+                          games[*found][i] = 0;
+                        }
                     }
+                  games[*found][SCREEN_COLUMNS] = 0;
+                  (*found)++;
                 }
+            }
 
-              if (*found == to_find)
+          if (*found == to_find)
+            {
+              break;
+            }
+        }
+      f_closedir (&dir);
+    }
+
+  return res;
+}
+
+static FRESULT
+choose_game (unsigned short int selected, struct GameChoice *choice,
+             unsigned short int *games_found, char *path, bool *found)
+{
+  FRESULT res;
+  DIR dir;
+  unsigned short int pathlen, gb_games_seen = 0;
+  static FILINFO fno;
+
+  res = f_opendir (&dir, path);
+  if (res == FR_OK)
+    {
+      while (1)
+        {
+          res = f_readdir (&dir, &fno);
+
+          // Nothing left to be read
+          if (res != FR_OK || fno.fname[0] == 0)
+            break;
+
+          if (fno.fattrib & AM_DIR)
+            {
+              pathlen = strlen (path);
+              sprintf (&path[pathlen], "/%s", fno.fname);
+              res = choose_game (selected, choice, games_found, path, found);
+              if (res != FR_OK)
+                break;
+              path[pathlen] = 0;
+            }
+          else
+            {
+              const char *ext = strrchr (fno.fname, '.') + 1;
+              if (strcmp (ext, "gb") || strcmp (ext, "GB")
+                  || strcmp (ext, "gbc") || strcmp (ext, "GBC"))
                 {
-                  break;
+                  // Save the name only iff it's the "from"-th game or more..
+                  if (gb_games_seen != selected)
+                    {
+                      gb_games_seen++;
+                      continue;
+                    }
+
+                  *found = 1;
+                  pathlen = strlen (path);
+                  sprintf (&path[pathlen], "/%s", fno.fname);
+                  res = f_open (&choice->game, path, FA_READ);
+
+                  if (res != FR_OK)
+                    return res;
+
+                  sprintf (&path[pathlen], "/%s.sav", strchr (fno.fname, '.'));
+                  res = f_open (&choice->savefile, path, FA_READ);
+                  if (res != FR_OK)
+                    return res;
+                  path[pathlen] = 0;
                 }
+            }
+
+          if (*found)
+            {
+              break;
             }
         }
       f_closedir (&dir);
