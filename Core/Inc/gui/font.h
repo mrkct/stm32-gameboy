@@ -1,5 +1,5 @@
-#ifndef GB_FONT_H
-#define GB_FONT_H
+#ifndef STM32GB_FONT_H
+#define STM32GB_FONT_H
 
 #include <stdint.h>
 

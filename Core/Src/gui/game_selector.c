@@ -10,12 +10,6 @@
 #define TRUE 1
 #define FALSE 0
 
-#define SCREEN_HEIGHT (DISPLAY_HEIGHT / 2)
-#define SCREEN_WIDTH (DISPLAY_WIDTH / 2)
-
-#define SCREEN_LINES (SCREEN_HEIGHT / FONT_HEIGHT)
-#define SCREEN_COLUMNS (SCREEN_WIDTH / FONT_WIDTH)
-
 static FRESULT find_games (unsigned short int, unsigned short int,
                            unsigned short int *, char *);
 

@@ -1,5 +1,15 @@
+#ifndef STM32GB_GUI_FRAME
+#define STM32GB_GUI_FRAME
+
 #include <stdbool.h>
 #include <stdint.h>
+
+#include "gui/font.h"
+#define SCREEN_HEIGHT 160
+#define SCREEN_WIDTH 144
+
+#define SCREEN_LINES (SCREEN_HEIGHT / FONT_HEIGHT)
+#define SCREEN_COLUMNS (SCREEN_WIDTH / FONT_WIDTH)
 
 struct FrameImp;
 typedef struct FrameImp *Frame;
@@ -16,3 +26,5 @@ void Frame_AddLine (Frame frame, char *name, unsigned short int line,
 
 uint16_t *Frame_Draw (Frame frame);
 void Frame_Delete (Frame frame);
+
+#endif

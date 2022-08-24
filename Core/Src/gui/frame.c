@@ -2,11 +2,11 @@
 #include "display/ili9341.h"
 #include "gui/font.h"
 #include <stdint.h>
-#include <string.h> 
-#include <stdlib.h> 
-#include <stdio.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-//static uint16_t *unicode_map;
+// static uint16_t *unicode_map;
 
 struct FrameImp
 {
@@ -18,7 +18,8 @@ struct FrameImp
 static struct FrameImp _globl_frame;
 
 Frame
-Frame_New (unsigned short int width, unsigned short int height, uint16_t* buffer, uint16_t bg)
+Frame_New (unsigned short int width, unsigned short int height,
+           uint16_t *buffer, uint16_t bg)
 {
   //  if (unicode_map == NULL)
   //    {
@@ -110,7 +111,7 @@ Frame_AddLine (Frame frame, char *name, unsigned short int line,
       frame_putchar (frame, '>', line, col, (2 << 15) - 1, 0);
       col++;
     }
-  int to_print = name_len > frame->width ? frame->width : name_len;
+  int to_print = name_len > SCREEN_COLUMNS ? SCREEN_COLUMNS : name_len;
   for (int i = 0; i < to_print; i++)
     {
       frame_putchar (frame, name[i], line, col + i, (2 << 15) - 1, 0);
