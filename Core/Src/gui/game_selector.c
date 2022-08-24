@@ -20,7 +20,7 @@ static FRESULT find_games (unsigned short int, unsigned short int,
                            unsigned short int *, char *);
 
 static FRESULT choose_game (unsigned short int, struct GameChoice *,
-                            unsigned short int *, char *, bool *);
+                            unsigned short int *, char *, _Bool *);
 
 static char games[SCREEN_LINES][SCREEN_COLUMNS + 1];
 
@@ -109,7 +109,8 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
     }
 
   found_games = 0;
-  choose_game (selected, choice, &found_games, path);
+  _Bool found = 0;
+  choose_game (selected, choice, &found_games, path, &found);
 }
 
 static FRESULT
@@ -186,11 +187,11 @@ find_games (unsigned short int from, unsigned short int to_find,
 
 static FRESULT
 choose_game (unsigned short int selected, struct GameChoice *choice,
-             unsigned short int *games_found, char *path, bool *found)
+             unsigned short int *games_found, char *path, _Bool *found)
 {
   FRESULT res;
   DIR dir;
-  unsigned short int pathlen, gb_games_seen = 0;
+  unsigned short int pathlen;
   static FILINFO fno;
 
   res = f_opendir (&dir, path);
@@ -220,9 +221,9 @@ choose_game (unsigned short int selected, struct GameChoice *choice,
                   || strcmp (ext, "gbc") || strcmp (ext, "GBC"))
                 {
                   // Save the name only iff it's the "from"-th game or more..
-                  if (gb_games_seen != selected)
+                  if (*games_found != selected)
                     {
-                      gb_games_seen++;
+                      (*games_found)++;
                       continue;
                     }
 
