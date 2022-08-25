@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 #include "gui/font.h"
-#define SCREEN_HEIGHT 160
-#define SCREEN_WIDTH 144
+#define SCREEN_HEIGHT 144
+#define SCREEN_WIDTH 160
 
 #define SCREEN_LINES (SCREEN_HEIGHT / FONT_HEIGHT)
 #define SCREEN_COLUMNS (SCREEN_WIDTH / FONT_WIDTH)
