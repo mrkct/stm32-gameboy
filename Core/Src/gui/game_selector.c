@@ -154,7 +154,7 @@ find_games (unsigned short int from, unsigned short int to_find,
                       continue;
                     }
                   char *ext_dot = strrchr (name, '.');
-                  if (ext_dot)
+                  if (ext_dot && (*ext_dot) == '.')
                     {
                       (*ext_dot) = 0;
                     }
@@ -170,6 +170,7 @@ find_games (unsigned short int from, unsigned short int to_find,
                       else
                         {
                           games[*found][i] = 0;
+                          break;
                         }
                     }
                   games[*found][SCREEN_COLUMNS] = 0;
