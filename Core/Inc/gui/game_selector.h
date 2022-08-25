@@ -9,6 +9,8 @@ struct GameChoice {
   FIL savefile;
 };
 
+void HaltAndShowErrorScreen(struct ILI9341_t *display, const char *, const char *);
+
 void GameSelectionMenu(struct ILI9341_t *display, struct GameChoice *);
 
 #endif

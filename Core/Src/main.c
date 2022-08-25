@@ -104,17 +104,7 @@ int main(void) {
 
   InitializeGamepadPins();
 
-  FATFS fs;
-  FRESULT res;
-
-  HAL_Delay(2500);
-
-  res = f_mount(&fs, "", 1);
-  if (res != FR_OK) {
-    // TODO: Error handling?
-    while (1)
-      ;
-  }
+  
 
   struct ILI9341_t lcd;
   ILI9341_Init(&lcd, (struct ILI9341_Pin_t){LCD_D7},
@@ -128,6 +118,16 @@ int main(void) {
                (struct ILI9341_Pin_t){LCD_WR}, (struct ILI9341_Pin_t){LCD_RD});
   ILI9341_SendInitializationSequence(&lcd);
   ILI9341_SetOrientation(&lcd, HORIZONTAL);
+
+  FATFS fs;
+  FRESULT res;
+
+  HAL_Delay(2500);
+
+  res = f_mount(&fs, "", 1);
+  if (res != FR_OK) {
+    HaltAndShowErrorScreen(&lcd, "Could not read from SD card", "Format using FAT32 and retry");
+  }
 
   struct GameChoice choice;
   GameSelectionMenu(&lcd, &choice);

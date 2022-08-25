@@ -103,7 +103,7 @@ frame_putchar (Frame frame, char c, unsigned short int line,
 }
 
 void
-Frame_AddLine (Frame frame, char *name, unsigned short int line,
+Frame_AddLine (Frame frame, const char *name, unsigned short int line,
                unsigned short int col, _Bool selected)
 {
   if (line >= SCREEN_LINES)
@@ -121,11 +121,11 @@ Frame_AddLine (Frame frame, char *name, unsigned short int line,
       frame_putchar (frame, '>', line, col, (2 << 15) - 1, 0);
       col++;
     }
-  int to_print = ((col + name_len) >= SCREEN_COLUMNS)
-                     ? (SCREEN_COLUMNS - col)
-                     : (name_len);
-  for (int i = 0; i < to_print; i++)
+  for (int i = 0; i < name_len; i++)
     {
+      if (col + i >= SCREEN_COLUMNS)
+        return;
+      
       frame_putchar (frame, name[i], line, col + i, (2 << 15) - 1, 0);
     }
 }
