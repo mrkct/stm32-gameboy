@@ -6,6 +6,7 @@
 #include "gui/frame.h"
 #include <stdio.h>
 #include <string.h>
+#include "gui/sad_gameboy.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -17,6 +18,32 @@ static FRESULT choose_game (unsigned short int, struct GameChoice *,
                             unsigned short int *, char *, _Bool *);
 
 static char games[SCREEN_LINES][SCREEN_COLUMNS + 1];
+
+void
+HaltAndShowErrorScreen(struct ILI9341_t *display, const char *message1, const char *message2)
+{
+  uint16_t framebuffer[SCREEN_WIDTH * SCREEN_HEIGHT];
+  Frame frame = Frame_New (SCREEN_WIDTH, SCREEN_HEIGHT, framebuffer, ILI9341_RgbTo565(255, 255, 255));  
+
+  Frame_AddLine(frame, message1, 2, 1, FALSE);
+  Frame_AddLine(frame, message2, 4, 1, FALSE);
+
+  const int offy = 55;
+  const int offx = (SCREEN_WIDTH - SADGB_WIDTH) / 2;
+  for (int y = 0; y < SADGB_HEIGHT; y++) {
+    for (int x = 0; x < SADGB_WIDTH; x++) {
+      if (SADGB_DATA[y * SADGB_WIDTH + x])
+        framebuffer[(offy + y) * SCREEN_WIDTH + (offx + x)] = 0;
+    }
+  }
+
+  Frame_AddLine(frame, "Please restart the", 12, 1, FALSE);
+  Frame_AddLine(frame, "     console", 14, 1, FALSE);
+
+  ILI9341_DrawFramebufferScaled(display, Frame_Draw(frame));
+
+  while(1);
+}
 
 void
 GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
@@ -51,8 +78,7 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
       // display driver has a mechanism to automatically load it..
       if (found_games == 0)
         {
-          Frame_AddLine (frame, "no sd card!", SCREEN_LINES / 2,
-                         (SCREEN_COLUMNS / 2) - 6, FALSE);
+          HaltAndShowErrorScreen(display, "No games found in", "    the card");
         }
       else
         {
@@ -117,71 +143,71 @@ find_games (unsigned short int from, unsigned short int to_find,
   static FILINFO fno;
 
   res = f_opendir (&dir, path);
-  if (res == FR_OK)
-    {
-      while (1)
-        {
-          res = f_readdir (&dir, &fno);
+  if (!res)
+    return res;
 
-          // Nothing left to be read
-          if (res != FR_OK || fno.fname[0] == 0)
-            break;
+  while (1)
+  {
+    res = f_readdir (&dir, &fno);
 
-          if (fno.fattrib & AM_DIR)
-            {
-              pathlen = strlen (path);
-              sprintf (&path[pathlen], "/%s", fno.fname);
-              res = find_games (0, to_find - *found, found, path);
-              if (res != FR_OK)
-                break;
-              path[pathlen] = 0;
-            }
-          else
-            {
-              const char *ext = strrchr (fno.fname, '.') + 1;
-              if (!(strcmp (ext, "gb") || strcmp (ext, "GB")
-                    || strcmp (ext, "gbc") || strcmp (ext, "GBC")))
-                {
-                  char *name = fno.fname;
+    // Nothing left to be read
+    if (res != FR_OK || fno.fname[0] == 0)
+      break;
 
-                  // Save the name only iff it's the "from"-th game or more..
-                  if (gb_games_seen < from)
-                    {
-                      gb_games_seen++;
-                      continue;
-                    }
-                  char *ext_dot = strrchr (name, '.');
-                  if (ext_dot && (*ext_dot) == '.')
-                    {
-                      (*ext_dot) = 0;
-                    }
+    if (fno.fattrib & AM_DIR)
+      {
+        pathlen = strlen (path);
+        sprintf (&path[pathlen], "/%s", fno.fname);
+        res = find_games (0, to_find - *found, found, path);
+        if (res != FR_OK)
+          break;
+        path[pathlen] = 0;
+      }
+    else
+      {
+        const char *ext = strrchr (fno.fname, '.') + 1;
+        if (!(strcmp (ext, "gb") || strcmp (ext, "GB")
+            || strcmp (ext, "gbc") || strcmp (ext, "GBC")))
+          {
+            char *name = fno.fname;
 
-                  unsigned short int len = strlen (name);
-                  for (int i = 0; i < SCREEN_COLUMNS; i++)
-                    {
+            // Save the name only iff it's the "from"-th game or more..
+            if (gb_games_seen < from)
+              {
+                gb_games_seen++;
+                continue;
+              }
+            char *ext_dot = strrchr (name, '.');
+            if (ext_dot && (*ext_dot) == '.')
+              {
+                (*ext_dot) = 0;
+              }
 
-                      if (i < len)
-                        {
-                          games[*found][i] = name[i];
-                        }
-                      else
-                        {
-                          games[*found][i] = 0;
-                          break;
-                        }
-                    }
-                  games[*found][SCREEN_COLUMNS] = 0;
-                  (*found)++;
-                }
-            }
+            unsigned short int len = strlen (name);
+            for (int i = 0; i < SCREEN_COLUMNS; i++)
+              {
 
-          if (*found == to_find)
-            {
-              break;
-            }
-        }
-      f_closedir (&dir);
-    }
+                if (i < len)
+                  {
+                    games[*found][i] = name[i];
+                  }
+                else
+                  {
+                    games[*found][i] = 0;
+                  break;
+                  }
+              }
+            games[*found][SCREEN_COLUMNS] = 0;
+            (*found)++;
+          }
+      }
+
+    if (*found == to_find)
+      {
+        break;
+      }
+  }
+  f_closedir (&dir);
 
   return res;
 }
