@@ -4,8 +4,8 @@
 #include "stm32f4xx_hal.h"
 #include <stdint.h>
 
-#define DISPLAY_WIDTH 320
-#define DISPLAY_HEIGHT 240
+#define DISPLAY_WIDTH 240
+#define DISPLAY_HEIGHT 320 
 
 struct ILI9341_Pin_t {
   GPIO_TypeDef *port;
