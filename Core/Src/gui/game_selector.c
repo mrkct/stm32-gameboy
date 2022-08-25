@@ -153,6 +153,12 @@ find_games (unsigned short int from, unsigned short int to_find,
                       gb_games_seen++;
                       continue;
                     }
+                  char *ext_dot = strrchr (name, '.');
+                  if (ext_dot)
+                    {
+                      (*ext_dot) = 0;
+                    }
+
                   unsigned short int len = strlen (name);
                   for (int i = 0; i < SCREEN_COLUMNS; i++)
                     {
