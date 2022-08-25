@@ -220,8 +220,8 @@ choose_game (unsigned short int selected, struct GameChoice *choice,
           else
             {
               const char *ext = strrchr (fno.fname, '.') + 1;
-              if (strcmp (ext, "gb") || strcmp (ext, "GB")
-                  || strcmp (ext, "gbc") || strcmp (ext, "GBC"))
+              if (!(strcmp (ext, "gb") || strcmp (ext, "GB")
+                    || strcmp (ext, "gbc") || strcmp (ext, "GBC")))
                 {
                   // Save the name only iff it's the "from"-th game or more..
                   if (*games_found != selected)
