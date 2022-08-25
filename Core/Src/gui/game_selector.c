@@ -40,13 +40,12 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
   unsigned short int selected = 0;
   unsigned short int found_games = 0;
   unsigned short int wait_millis = 250;
-  unsigned short int to_print = 0;
   unsigned int last_command_millis = HAL_GetTick ();
 
   for (;;)
     {
       found_games = 0;
-      find_games (selected, SCREEN_LINES, &found_games, path);
+      find_games (selected, SCREEN_LINES - 2, &found_games, path);
 
       // Putting this in the loop won't allow an hot swap of the SD, unless the
       // display driver has a mechanism to automatically load it..
@@ -86,9 +85,7 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
 
           Frame_Clear (frame, bg);
 
-          to_print = found_games > (SCREEN_LINES - 2) ? SCREEN_LINES - 2
-                                                      : found_games;
-          for (int i = 0; i < to_print; i++)
+          for (int i = 0; i < found_games; i++)
             {
               if (i == 0)
                 {
