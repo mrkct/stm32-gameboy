@@ -142,8 +142,8 @@ find_games (unsigned short int from, unsigned short int to_find,
           else
             {
               const char *ext = strrchr (fno.fname, '.') + 1;
-              if (strcmp (ext, "gb") || strcmp (ext, "GB")
-                  || strcmp (ext, "gbc") || strcmp (ext, "GBC"))
+              if (!(strcmp (ext, "gb") || strcmp (ext, "GB")
+                    || strcmp (ext, "gbc") || strcmp (ext, "GBC")))
                 {
                   char *name = fno.fname;
 
