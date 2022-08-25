@@ -83,6 +83,12 @@ frame_putchar (Frame frame, char c, unsigned short int line,
       for (x = 0; x < font->width; x++)
         {
           uint16_t color = (*glyph & mask) ? fg : bg;
+
+          if (offs + x >= frame->width * frame->height)
+            {
+              continue;
+            }
+
           frame->buffer[offs + x] = color;
 #ifdef DEBUG
           printf ("char: '%c', mask: %d, x: %d, offs+x:%d, fb[offs+x]: %d, "
@@ -100,6 +106,10 @@ void
 Frame_AddLine (Frame frame, char *name, unsigned short int line,
                unsigned short int col, _Bool selected)
 {
+  if (line >= SCREEN_LINES)
+    {
+      return;
+    }
 #ifdef DEBUG
   printf ("frame %p adding name %s in line %d (selected: %d)\n", frame, name,
           line, selected);
