@@ -51,7 +51,8 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
       // display driver has a mechanism to automatically load it..
       if (found_games == 0)
         {
-          Frame_AddLine (frame, "no sd card!", SCREEN_LINES / 2, (SCREEN_COLUMNS / 2) - 6, FALSE);
+          Frame_AddLine (frame, "no game found!", SCREEN_LINES / 2,
+                         (SCREEN_COLUMNS / 2) - 6, FALSE);
         }
       else
         {
@@ -100,7 +101,6 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
 
       ILI9341_DrawFramebufferScaled (display, Frame_Draw (frame));
       HAL_Delay (250);
-
     }
 
   found_games = 0;
@@ -140,9 +140,10 @@ find_games (unsigned short int from, unsigned short int to_find,
           else
             {
               const char *ext = strrchr (fno.fname, '.') + 1;
-              if (!(strcmp (ext, "gb") || strcmp (ext, "GB")
-                    || strcmp (ext, "gbc") || strcmp (ext, "GBC")))
+              if (!strcmp (ext, "gb") || !strcmp (ext, "GB")
+                  || !strcmp (ext, "gbc") || !strcmp (ext, "GBC"))
                 {
+
                   char *name = fno.fname;
 
                   // Save the name only iff it's the "from"-th game or more..
@@ -151,6 +152,9 @@ find_games (unsigned short int from, unsigned short int to_find,
                       gb_games_seen++;
                       continue;
                     }
+
+                  (*found)++;
+
                   char *ext_dot = strrchr (name, '.');
                   if (ext_dot && (*ext_dot) == '.')
                     {
@@ -171,8 +175,8 @@ find_games (unsigned short int from, unsigned short int to_find,
                           break;
                         }
                     }
+
                   games[*found][SCREEN_COLUMNS] = 0;
-                  (*found)++;
                 }
             }
 
@@ -219,8 +223,8 @@ choose_game (unsigned short int selected, struct GameChoice *choice,
           else
             {
               const char *ext = strrchr (fno.fname, '.') + 1;
-              if (!(strcmp (ext, "gb") || strcmp (ext, "GB")
-                    || strcmp (ext, "gbc") || strcmp (ext, "GBC")))
+              if (!strcmp (ext, "gb") || !strcmp (ext, "GB")
+                  || !strcmp (ext, "gbc") || !strcmp (ext, "GBC"))
                 {
                   // Save the name only iff it's the "from"-th game or more..
                   if (*games_found != selected)
