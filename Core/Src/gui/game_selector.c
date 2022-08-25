@@ -51,8 +51,7 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
       // display driver has a mechanism to automatically load it..
       if (found_games == 0)
         {
-          Frame_AddLine (frame, "no sd card!", SCREEN_LINES / 2,
-                         (SCREEN_COLUMNS / 2) - 6, FALSE);
+          Frame_AddLine (frame, "no sd card!", SCREEN_LINES / 2, (SCREEN_COLUMNS / 2) - 6, FALSE);
         }
       else
         {
@@ -97,9 +96,11 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
                   Frame_AddLine (frame, games[i], i + 1, 1, FALSE);
                 }
             }
-          ILI9341_DrawFramebufferScaled (display, Frame_Draw (frame));
-          HAL_Delay (250);
         }
+
+      ILI9341_DrawFramebufferScaled (display, Frame_Draw (frame));
+      HAL_Delay (250);
+
     }
 
   found_games = 0;
