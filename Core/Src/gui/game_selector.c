@@ -10,8 +10,9 @@
 #define MAX_GAME_LEN (SCREEN_COLUMNS - COLS_PADDING)
 
 static char games[GAMES_PER_PAGE][MAX_GAME_LEN + 1] = { 0 };
-static uint16_t buffer[SCREEN_WIDTH * SCREEN_HEIGHT] = { 0 };
-static const uint16_t bg = (2 << 15) - 1, fg = 0;
+static const uint16_t bg = 0xff, fg = 0;
+static uint16_t buffer[SCREEN_WIDTH * SCREEN_HEIGHT]
+    = { [0 ...(SCREEN_WIDTH * SCREEN_HEIGHT) - 1] = bg };
 
 static const unsigned short int FindGames ();
 static void LoadGamesPage (const unsigned short int selected_game,
@@ -35,8 +36,6 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
   const unsigned short int wait_millis = 250;
   unsigned short int last_command_millis = HAL_GetTick ();
   const unsigned short int avail_games = FindGames ();
-
-  memset(buffer, 0xff, sizeof(buffer));
 
   if (avail_games == 0)
     {
