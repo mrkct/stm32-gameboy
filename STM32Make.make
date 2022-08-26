@@ -149,6 +149,7 @@ C_INCLUDES =  \
 -ICore/Inc/emulator \
 -ICore/Inc/gamepad \
 -ICore/Inc/gui \
+-ICore/Src/gui \
 -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
 -IDrivers/CMSIS/Include \
 -IDrivers/STM32F4xx_HAL_Driver/Inc \

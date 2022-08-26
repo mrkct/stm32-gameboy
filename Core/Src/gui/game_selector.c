@@ -36,6 +36,8 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
   unsigned short int last_command_millis = HAL_GetTick ();
   const unsigned short int avail_games = FindGames ();
 
+  memset(buffer, 0xff, sizeof(buffer));
+
   if (avail_games == 0)
     {
       HaltAndShowErrorScreen (display, "  No games found", "   in the card!");
@@ -391,8 +393,8 @@ HaltAndShowErrorScreen (struct ILI9341_t *display, const char *message1,
         }
     }
 
-  AddLine (buffer, "Please restart the", 12, 1, 1);
-  AddLine (buffer, "     console", 14, 1, 1);
+  AddLine (buffer, "  Please restart", 12, 1, 0);
+  AddLine (buffer, "    the console", 14, 1, 0);
 
   ILI9341_DrawFramebufferScaled (display, buffer);
 
