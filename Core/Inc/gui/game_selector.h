@@ -4,13 +4,14 @@
 #include "display/ili9341.h"
 #include "fatfs.h"
 
-struct GameChoice {
+struct GameChoice
+{
   FIL game;
   FIL savefile;
 };
 
-void HaltAndShowErrorScreen(struct ILI9341_t *display, const char *, const char *);
-
-void GameSelectionMenu(struct ILI9341_t *display, struct GameChoice *);
+void GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *);
+void HaltAndShowErrorScreen (struct ILI9341_t *display, const char *,
+                             const char *);
 
 #endif

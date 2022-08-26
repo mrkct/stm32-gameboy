@@ -40,10 +40,7 @@ Core/Src/disk_cache.c \
 Core/Src/display/ili9341.c \
 Core/Src/emulator/emulator_hooks.c \
 Core/Src/gamepad/gamepad.c \
-Core/Src/gui/font.c \
-Core/Src/gui/frame.c \
 Core/Src/gui/game_selector.c \
-Core/Src/gui/psf.c \
 Core/Src/main.c \
 Core/Src/stm32f4xx_hal_msp.c \
 Core/Src/stm32f4xx_it.c \

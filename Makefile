@@ -69,10 +69,7 @@ FATFS/Target/user_diskio_spi.c \
 Core/Src/display/ili9341.c \
 Core/Src/emulator/emulator_hooks.c \
 Core/Src/gamepad/gamepad.c \
-Core/Src/gui/font.c \
-Core/Src/gui/frame.c \
 Core/Src/gui/game_selector.c \
-Core/Src/gui/psf.c \
 Core/Src/gui/disk_cache.c
 
 # ASM sources
