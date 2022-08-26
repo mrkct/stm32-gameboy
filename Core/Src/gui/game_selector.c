@@ -10,7 +10,7 @@
 #define MAX_GAME_LEN (SCREEN_COLUMNS - COLS_PADDING)
 
 static char games[GAMES_PER_PAGE][MAX_GAME_LEN + 1] = { 0 };
-static const uint16_t bg = 0xff, fg = 0;
+static const uint16_t bg = 0xffff, fg = 0;
 static uint16_t buffer[SCREEN_WIDTH * SCREEN_HEIGHT]
     = { [0 ...(SCREEN_WIDTH * SCREEN_HEIGHT) - 1] = bg };
 
@@ -106,7 +106,7 @@ _FindGamesImpl (char *path)
   static FILINFO fno;
 
   res = f_opendir (&dir, path);
-  if (!res)
+  if (res != FR_OK)
     return 0;
 
   while (1)
@@ -157,7 +157,7 @@ _LoadGamesPageImpl (char *path, const unsigned short int from,
   static FILINFO fno;
 
   res = f_opendir (&dir, path);
-  if (!res)
+  if (res != FR_OK)
     return;
 
   while (1)
@@ -308,7 +308,7 @@ _GetGameImpl (char *path, struct GameChoice *choice, unsigned short int *count,
   static FILINFO fno;
 
   res = f_opendir (&dir, path);
-  if (!res)
+  if (res != FR_OK)
     return 0;
 
   while (1)
@@ -351,7 +351,7 @@ _GetGameImpl (char *path, struct GameChoice *choice, unsigned short int *count,
                   (*dot) = 0;
 
                   sprintf (&path[len], "/%s.sav", fno.fname);
-                  res = f_open (&choice->savefile, path, FA_READ);
+                  res = f_open (&choice->savefile, path, FA_CREATE_ALWAYS | FA_READ | FA_WRITE);
                   if (res != FR_OK)
                     return 0;
                   return 1;
