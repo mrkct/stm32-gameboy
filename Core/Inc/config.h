@@ -35,11 +35,11 @@
 #define BUTTON_LEFT_PORT GPIOB
 #define BUTTON_LEFT_PIN GPIO_PIN_5
 #define BUTTON_UP_PORT GPIOB
-#define BUTTON_UP_PIN GPIO_PIN_6
+#define BUTTON_UP_PIN GPIO_PIN_7
 #define BUTTON_RIGHT_PORT GPIOB
 #define BUTTON_RIGHT_PIN GPIO_PIN_4
 #define BUTTON_DOWN_PORT GPIOB
-#define BUTTON_DOWN_PIN GPIO_PIN_7
+#define BUTTON_DOWN_PIN GPIO_PIN_6
 
 // Stuff used for the SD Card
 // Note that these are used by the external SD card driver,

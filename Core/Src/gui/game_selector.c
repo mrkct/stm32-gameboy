@@ -51,21 +51,21 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
         {
 
           last_command_millis = HAL_GetTick ();
-          if (!gp.joypad_bits.down)
+          if (!gp.joypad_bits.up)
             {
               if (selected_game != 0)
                 {
                   selected_game -= 1;
                 }
             }
-          else if (!gp.joypad_bits.up)
+          else if (!gp.joypad_bits.down)
             {
-              if (selected_game != avail_games)
+              if (selected_game != avail_games - 1)
                 {
                   selected_game += 1;
                 }
             }
-          else if (!gp.joypad_bits.start)
+          else if (!gp.joypad_bits.start || !gp.joypad_bits.a)
             {
               break;
             }
