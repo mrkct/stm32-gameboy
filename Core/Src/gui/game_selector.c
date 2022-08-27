@@ -90,8 +90,8 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
 
   if (!GetGame (choice, selected_game))
     {
-      HaltAndShowErrorScreen (display, "        uh-oh!",
-                              "something wrong happened!");
+      HaltAndShowErrorScreen (display, "  Failed to read",
+                              " from the SD card");
     }
 }
 

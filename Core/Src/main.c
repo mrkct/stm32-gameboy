@@ -126,7 +126,7 @@ int main(void) {
 
   res = f_mount(&fs, "", 1);
   if (res != FR_OK) {
-    HaltAndShowErrorScreen(&lcd, "Could not read from SD card", "Format using FAT32 and retry");
+    HaltAndShowErrorScreen(&lcd, "  Failed to read", " from the SD card");
   }
 
   struct GameChoice choice;
