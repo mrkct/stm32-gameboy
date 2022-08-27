@@ -5,6 +5,7 @@
 #include "gamepad/gamepad.h"
 #include "stm32f4xx_hal.h"
 #include <stdio.h>
+#include "display/framebuffer.h"
 
 struct Cache cache;
 
@@ -14,7 +15,6 @@ struct priv_t {
 
   /* Colour palette for each BG, OBJ0, and OBJ1. */
   uint16_t selected_palette[3][4];
-  uint16_t fb[LCD_HEIGHT * LCD_WIDTH];
 };
 
 uint8_t gb_rom_read(struct gb_s *gb, const uint_fast32_t addr) {
@@ -73,7 +73,7 @@ void gb_lcd_draw_line(struct gb_s *gb, const uint8_t *pixels,
                       const uint_fast8_t line) {
   struct priv_t *priv = gb->direct.priv;
 
-  uint16_t *l = &priv->fb[LCD_WIDTH * line];
+  uint16_t *l = &framebuffer[LCD_WIDTH * line];
   for (unsigned int x = 0; x < LCD_WIDTH; x++) {
     l[x] = priv->selected_palette[(pixels[x] & LCD_PALETTE_ALL) >> 4]
                                  [pixels[x] & 3];
@@ -299,7 +299,7 @@ void StartEmulator(struct ILI9341_t *display, struct GameChoice *choice,
       gb_tick_rtc(&gb);
     }
 
-    ILI9341_DrawFramebufferScaled(display, priv.fb);
+    ILI9341_DrawFramebufferScaled(display, framebuffer);
 
     frames += 2;
     if (HAL_GetTick() > last_ticks + 1000) {

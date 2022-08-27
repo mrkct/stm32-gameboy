@@ -3,6 +3,8 @@
 #include "gamepad/gamepad.h"
 #include <stdio.h>
 #include <string.h>
+#include "config.h"
+#include "display/framebuffer.h"
 
 #define LINES_PADDING 2
 #define COLS_PADDING 2
@@ -10,9 +12,6 @@
 #define MAX_GAME_LEN (SCREEN_COLUMNS - COLS_PADDING)
 
 static char games[GAMES_PER_PAGE][MAX_GAME_LEN + 1] = { 0 };
-static const uint16_t bg = 0xffff, fg = 0;
-static uint16_t buffer[SCREEN_WIDTH * SCREEN_HEIGHT]
-    = { [0 ...(SCREEN_WIDTH * SCREEN_HEIGHT) - 1] = bg };
 
 static const unsigned short int FindGames ();
 static void LoadGamesPage (const unsigned short int selected_game,
@@ -77,7 +76,7 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
       for (unsigned short int i = 0; i < GAMES_PER_PAGE; i++)
         {
           AddLine (
-              buffer, games[i], i + (LINES_PADDING / 2), COLS_PADDING / 2,
+              framebuffer, games[i], i + (LINES_PADDING / 2), COLS_PADDING / 2,
               selected_game
                       == ((selected_game / GAMES_PER_PAGE) * GAMES_PER_PAGE
                           + i)
@@ -85,7 +84,7 @@ GameSelectionMenu (struct ILI9341_t *display, struct GameChoice *choice)
                   : 0);
         }
 
-      ILI9341_DrawFramebufferScaled (display, buffer);
+      ILI9341_DrawFramebufferScaled (display, framebuffer);
       HAL_Delay (250);
     }
 
@@ -288,13 +287,13 @@ AddLine (uint16_t *buffer, const char *name, const unsigned short int line,
 
   if (selected)
     {
-      PutChar (buffer, '>', line, col, bg, fg);
+      PutChar (buffer, '>', line, col, BACKGROUND, FOREGROUND);
       col++;
     }
 
   for (int i = 0; (col + i) < MAX_GAME_LEN; i++)
     {
-      PutChar (buffer, (i < name_len) ? name[i] : ' ', line, col + i, bg, fg);
+      PutChar (buffer, (i < name_len) ? name[i] : ' ', line, col + i, BACKGROUND, FOREGROUND);
     }
 }
 
@@ -379,8 +378,10 @@ void
 HaltAndShowErrorScreen (struct ILI9341_t *display, const char *message1,
                         const char *message2)
 {
-  AddLine (buffer, message1, 2, 1, 0);
-  AddLine (buffer, message2, 4, 1, 0);
+  memset(framebuffer, BACKGROUND, sizeof(framebuffer));
+
+  AddLine (framebuffer, message1, 2, 1, 0);
+  AddLine (framebuffer, message2, 4, 1, 0);
   const int offy = 55;
   const int offx = (SCREEN_WIDTH - SADGB_WIDTH) / 2;
   for (int y = 0; y < SADGB_HEIGHT; y++)
@@ -388,14 +389,14 @@ HaltAndShowErrorScreen (struct ILI9341_t *display, const char *message1,
       for (int x = 0; x < SADGB_WIDTH; x++)
         {
           if (SADGB_DATA[y * SADGB_WIDTH + x])
-            buffer[(offy + y) * SCREEN_WIDTH + (offx + x)] = 0;
+            framebuffer[(offy + y) * SCREEN_WIDTH + (offx + x)] = 0;
         }
     }
 
-  AddLine (buffer, "  Please restart", 12, 1, 0);
-  AddLine (buffer, "    the console", 14, 1, 0);
+  AddLine (framebuffer, "  Please restart", 12, 1, 0);
+  AddLine (framebuffer, "    the console", 14, 1, 0);
 
-  ILI9341_DrawFramebufferScaled (display, buffer);
+  ILI9341_DrawFramebufferScaled (display, framebuffer);
 
   while (1)
     ;

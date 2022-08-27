@@ -67,6 +67,7 @@ Middlewares/Third_Party/FatFs/src/option/syscall.c \
 Middlewares/Third_Party/FatFs/src/option/ccsbcs.c \
 FATFS/Target/user_diskio_spi.c \
 Core/Src/display/ili9341.c \
+Core/Src/display/framebuffer.c \
 Core/Src/emulator/emulator_hooks.c \
 Core/Src/gamepad/gamepad.c \
 Core/Src/gui/game_selector.c \

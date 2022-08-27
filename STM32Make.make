@@ -37,6 +37,7 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Core/Src/disk_cache.c \
+Core/Src/display/framebuffer.c \
 Core/Src/display/ili9341.c \
 Core/Src/emulator/emulator_hooks.c \
 Core/Src/gamepad/gamepad.c \
