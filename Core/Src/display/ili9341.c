@@ -273,15 +273,25 @@ void ILI9341_SetDrawingArea(struct ILI9341_t *ili, uint16_t x1, uint16_t x2,
 
   ILI9341_WriteCommandWith4Parameters(ili, CMD_COLUMN_ADDRESS_SET,
                                       (uint8_t)(x1 >> 8), (uint8_t)(x1 & 0xff),
-                                      (uint8_t)(x2 >> 8), (uint8_t)x2 & 0xff);
+                                      (uint8_t)(x2 >> 8), (uint8_t)(x2 & 0xff));
 
   ILI9341_WriteCommandWith4Parameters(ili, CMD_PAGE_ADDRESS_SET,
                                       (uint8_t)(y1 >> 8), (uint8_t)(y1 & 0xff),
-                                      (uint8_t)(y2 >> 8), (uint8_t)y2 & 0xff);
+                                      (uint8_t)(y2 >> 8), (uint8_t)(y2 & 0xff));
 }
 
-void ILI9341_DrawFramebufferScaled(struct ILI9341_t *ili, uint16_t framebuffer[])
-{
+void ILI9341_DrawFramebufferScaled(struct ILI9341_t *ili,
+                                   uint16_t framebuffer[]) {
+
+  // Data transfer sync
+  {
+    CD_COMMAND(ili);
+    ILI9341_WriteData(ili, 0x00);
+    for (int i = 0; i < 3; i++) {
+      WR_ACTIVE(ili);
+      WR_IDLE(ili);
+    }
+  }
 
 // WARN: This assumes that D0 -> PA0, D1 -> PA1, D2 -> PA2 ... D7 -> PA7
 #define WRITE_DATA_DIRECT_TO_DATA_PINS(data)                                   \
@@ -292,58 +302,38 @@ void ILI9341_DrawFramebufferScaled(struct ILI9341_t *ili, uint16_t framebuffer[]
 
 #define WR_IDLE_FAST(ili) GPIOA->BSRR = ili->WR.pin
 
-#define COLOR_AVERAGE(x, y)  (uint16_t) (((uint32_t) (x) + (uint32_t) (y)) / 2)
+#define COLOR_AVERAGE(x, y) (uint16_t)(((uint32_t)(x) + (uint32_t)(y)) / 2)
 
-#define WRITE_PIXEL(p) \
-  WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t) ((p) >> 8)); \
-      WR_IDLE_FAST(ili); \
-      WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t) (p)); \
-      WR_IDLE_FAST(ili);
+#define WRITE_PIXEL(p)                                                         \
+  WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)((p) >> 8));                         \
+  WR_IDLE_FAST(ili);                                                           \
+  WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)(p));                                \
+  WR_IDLE_FAST(ili);
 
   const int FB_WIDTH = 160;
   const int FB_HEIGHT = 144;
   const int SCALED_WIDTH = 240;
   const int SCALED_HEIGHT = 216;
 
-  // SetDrawingArea inlined with direct register writes
-  // Note that we don't call WR_ACTIVE or CD_{COMMAND, DATA} because
-  // those are set with the WRITE_X_DIRECT_TO_DATA_PINS calls
   {
-    // ColumnAddressSet(x1=0, x2=width)
-    WRITE_COMMAND_DIRECT_TO_DATA_PINS(CMD_COLUMN_ADDRESS_SET);
-    WR_IDLE_FAST(ili);
+    ILI9341_WriteCommand(ili, CMD_COLUMN_ADDRESS_SET);
 
-    WRITE_DATA_DIRECT_TO_DATA_PINS(0);
-    WR_IDLE_FAST(ili);
+    ILI9341_WriteData(ili, 0);
+    ILI9341_WriteData(ili, 0);
 
-    WRITE_DATA_DIRECT_TO_DATA_PINS(0);
-    WR_IDLE_FAST(ili);
+    ILI9341_WriteData(ili, (SCALED_WIDTH - 1) >> 8);
+    ILI9341_WriteData(ili, (SCALED_WIDTH - 1) & 0xff);
 
-    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)((SCALED_WIDTH - 1) >> 8));
-    WR_IDLE_FAST(ili);
+    ILI9341_WriteCommand(ili, CMD_PAGE_ADDRESS_SET);
 
-    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)((SCALED_WIDTH - 1) & 0xff));
-    WR_IDLE_FAST(ili);
+    ILI9341_WriteData(ili, 0);
+    ILI9341_WriteData(ili, 0);
 
-    // PageAddressSet(y1=0, y2=height)
-    WRITE_COMMAND_DIRECT_TO_DATA_PINS(CMD_PAGE_ADDRESS_SET);
-    WR_IDLE_FAST(ili);
-
-    WRITE_DATA_DIRECT_TO_DATA_PINS(0);
-    WR_IDLE_FAST(ili);
-
-    WRITE_DATA_DIRECT_TO_DATA_PINS(0);
-    WR_IDLE_FAST(ili);
-
-    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)(SCALED_HEIGHT - 1) >> 8);
-    WR_IDLE_FAST(ili);
-
-    WRITE_DATA_DIRECT_TO_DATA_PINS((uint8_t)(SCALED_HEIGHT - 1) & 0xff);
-    WR_IDLE_FAST(ili);
+    ILI9341_WriteData(ili, (SCALED_HEIGHT - 1) >> 8);
+    ILI9341_WriteData(ili, (SCALED_HEIGHT - 1) & 0xff);
   }
 
-  WRITE_COMMAND_DIRECT_TO_DATA_PINS(CMD_MEMORY_WRITE);
-  WR_IDLE_FAST(ili);
+  ILI9341_WriteCommand(ili, CMD_MEMORY_WRITE);
 
   int i = 0;
   HAL_Delay(1);
@@ -370,8 +360,9 @@ void ILI9341_DrawFramebufferScaled(struct ILI9341_t *ili, uint16_t framebuffer[]
     for (int j = i; j < i + FB_WIDTH; j += 2) {
       WRITE_PIXEL(framebuffer[j]);
       WRITE_PIXEL(framebuffer[j + 1]);
-    
-      // TODO: Calculate average color between top-left, top-right, bottom-left, bottom-right pixels
+
+      // TODO: Calculate average color between top-left, top-right, bottom-left,
+      // bottom-right pixels
       WRITE_PIXEL(framebuffer[j + 1]);
     }
     // Don't step 'i' here because we haven't printed a "real" row!
@@ -401,23 +392,24 @@ uint32_t ILI9341_ReadID(struct ILI9341_t *ili) {
   return r;
 }
 
-void ILI9341_SetOrientation(struct ILI9341_t *ili, enum ILI9341_Orientation o)
-{
+void ILI9341_SetOrientation(struct ILI9341_t *ili, enum ILI9341_Orientation o) {
   uint8_t b = PARAM_FLAG_MEMORY_ACCESS_CONTROL_ROW_BGR;
   switch (o) {
-    case VERTICAL:
-      b |= 0;
-      break;
-    case VERTICAL_REVERSE:
-      b |= PARAM_FLAG_MEMORY_ACCESS_CONTROL_COLUMN_ADDRESS_ORDER;
-      break;
-    case HORIZONTAL:
-      b |= PARAM_FLAG_MEMORY_ACCESS_CONTROL_ROW_COLUMN_EXCHANGE;
-      break;
-    case HORIZONTAL_REVERSE:
-      b = PARAM_FLAG_MEMORY_ACCESS_CONTROL_ROW_COLUMN_EXCHANGE | PARAM_FLAG_MEMORY_ACCESS_CONTROL_COLUMN_ADDRESS_ORDER | PARAM_FLAG_MEMORY_ACCESS_CONTROL_ROW_ADDRESS_ORDER;
-      break;
-    }
+  case VERTICAL:
+    b |= 0;
+    break;
+  case VERTICAL_REVERSE:
+    b |= PARAM_FLAG_MEMORY_ACCESS_CONTROL_COLUMN_ADDRESS_ORDER;
+    break;
+  case HORIZONTAL:
+    b |= PARAM_FLAG_MEMORY_ACCESS_CONTROL_ROW_COLUMN_EXCHANGE;
+    break;
+  case HORIZONTAL_REVERSE:
+    b = PARAM_FLAG_MEMORY_ACCESS_CONTROL_ROW_COLUMN_EXCHANGE |
+        PARAM_FLAG_MEMORY_ACCESS_CONTROL_COLUMN_ADDRESS_ORDER |
+        PARAM_FLAG_MEMORY_ACCESS_CONTROL_ROW_ADDRESS_ORDER;
+    break;
+  }
 
   CS_ACTIVE(ili);
   ILI9341_WriteCommandWithParameter(ili, CMD_MEMORY_ACCESS_CONTROL, b);
