@@ -1,8 +1,15 @@
 \documentclass[12pt]{article}
 
-\usepackage{hyperref}
 \usepackage[italian]{babel}
 \usepackage[a4paper]{geometry}
+\usepackage{amsmath, tikz, hyperref, caption, subcaption}
+\usepackage[capitalize, italian]{cleveref}
+
+% -- Font settings
+\usepackage[math-style=ISO]{unicode-math}
+\setmainfont{EB Garamond}%You should have installed the font
+\setmathfont{Garamond-Math.otf}[StylisticSet={8,9}]
+\setmathfont{Garamond-Math.otf}[range={scr,bfscr}]
 
 \setlength{\parskip}{1.2ex}
 \setlength{\parindent}{0em}
@@ -16,4 +23,57 @@
 
 \begin{document}
 \maketitle
+
+\section{Introduzione}
+Il GameBoy è una console portatile rilasciata da Nintendo all'inizio degli anni
+90 che diede inizio al grandissimo successo dei videogiochi tascabili.
+La console vendette più di 118 milioni di unità nel mondo e divenne un fenomeno
+culturale ricordato ancora oggi.
+
+Lo scopo del progetto è quello di costruire un'imitazione del GameBoy in grado
+di giocare tutti i videogiochi originali, ma con una serie di miglioramenti
+grazie ai componenti hardware più moderni. Tra le modifiche al dispositivo
+originale che abbiamo implementato troviamo il caricamento dei giochi tramite
+microSD, invece che con cartucce, e l'utilizzo di uno schermo a colori e
+retroilluminato, al contrario dell'originale schermo a scala di grigi che
+diventava impossibile da vedere sotto scarsa luce.
+
+\section{Architettura}
+
+\subsection{Componenti}
+\begin{figure}[h]
+	\begin{subfigure}[t]{0.32\textwidth}
+		\begin{center}
+			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
+				\input{stm32.tex}
+			\end{tikzpicture}
+		\end{center}
+		\caption{Pinout del microcontrollore STM32F411CEU6.}
+		\label{fig:pinout_stm32}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[t]{0.32\textwidth}
+		\begin{center}
+			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
+				\input{ili.tex}
+			\end{tikzpicture}
+		\end{center}
+		\caption{Pinout dello schermo \texttt{ILI9341}.}
+		\label{fig:pinout_ili}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[t]{0.32\textwidth}
+		\begin{center}
+			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=1, transform shape]
+				\input{pcb.tex}
+			\end{tikzpicture}
+		\end{center}
+		\caption{PCB della plancia di gioco.}
+		\label{fig:pinout_pcb}
+	\end{subfigure}
+\end{figure}
+Le componenti hardware utilizzate sono tre: il microcontrollore
+\texttt{STM32F411CEU6} (\cref{fig:pinout_stm32}), lo schermo \texttt{ILI9341}
+(\cref{fig:pinout_ili}) e la PCB per la plancia di gioco (\cref{fig:pinout_pcb}).
+
 \end{document}
