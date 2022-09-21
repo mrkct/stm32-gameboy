@@ -39,41 +39,98 @@ retroilluminato, al contrario dell'originale schermo a scala di grigi che
 diventava impossibile da vedere sotto scarsa luce.
 
 \section{Architettura}
-
-\subsection{Componenti}
-\begin{figure}[h]
-	\begin{subfigure}[t]{0.32\textwidth}
-		\begin{center}
-			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
-				\input{stm32.tex}
-			\end{tikzpicture}
-		\end{center}
-		\caption{Pinout del microcontrollore STM32F411CEU6.}
-		\label{fig:pinout_stm32}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[t]{0.32\textwidth}
-		\begin{center}
-			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
-				\input{ili.tex}
-			\end{tikzpicture}
-		\end{center}
-		\caption{Pinout dello schermo \texttt{ILI9341}.}
-		\label{fig:pinout_ili}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[t]{0.32\textwidth}
-		\begin{center}
-			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=1, transform shape]
-				\input{pcb.tex}
-			\end{tikzpicture}
-		\end{center}
-		\caption{PCB della plancia di gioco.}
-		\label{fig:pinout_pcb}
-	\end{subfigure}
-\end{figure}
+\subsection{Hardware}
+%\begin{figure}[h]
+%	\begin{subfigure}[t]{0.32\textwidth}
+%		\begin{center}
+%			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
+%				\input{stm32.tex}
+%			\end{tikzpicture}
+%		\end{center}
+%		\caption{Pinout del microcontrollore STM32F411CEU6.}
+%		\label{fig:pinout_stm32}
+%	\end{subfigure}
+%	\hfill
+%	\begin{subfigure}[t]{0.32\textwidth}
+%		\begin{center}
+%			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
+%				\input{ili.tex}
+%			\end{tikzpicture}
+%		\end{center}
+%		\caption{Pinout dello schermo \texttt{ILI9341}.}
+%		\label{fig:pinout_ili}
+%	\end{subfigure}
+%	\hfill
+%	\begin{subfigure}[t]{0.32\textwidth}
+%		\begin{center}
+%			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=1, transform shape]
+%				\input{pcb.tex}
+%			\end{tikzpicture}
+%		\end{center}
+%		\caption{PCB della plancia di gioco.}
+%		\label{fig:pinout_pcb}
+%	\end{subfigure}
+%\end{figure}
 Le componenti hardware utilizzate sono tre: il microcontrollore
 \texttt{STM32F411CEU6} (\cref{fig:pinout_stm32}), lo schermo \texttt{ILI9341}
-(\cref{fig:pinout_ili}) e la PCB per la plancia di gioco (\cref{fig:pinout_pcb}).
+(\cref{fig:pinout_ili}) e la PCB per la plancia di gioco
+(\cref{fig:pinout_pcb}).
 
+\subsubsection{Microcontrollore}
+La componente centrale del progetto è il microcontrollore
+\texttt{STM32F411CEU6}, prodotto da ST, montato sulla board \texttt{WeAct Black
+	Pill V2.0}. Il microcontrollore monta un core \texttt{arm} Cortex-M4 con clock
+massimo $100$MHz. Questo microcontrollore offre $34$ pin GPIO, che verranno
+utilizzati per collegare il microcontrollore a schermo e pad; monta $512$KiB di
+memoria flash e $128$KiB di SRAM, necessari per l'esecuzione del software
+necessario.
+\begin{figure}
+	\begin{center}
+		\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
+			\input{stm32.tex}
+		\end{tikzpicture}
+	\end{center}
+	\caption{Pinout del microcontrollore STM32F411CEU6.}
+	\label{fig:pinout_stm32}
+
+\end{figure}
+
+\subsubsection{Schermo}
+Lo schermo che abbiamo utilizzato, chiamato \texttt{ILI9341}, è uno schermo LCD
+da $2.8''$, con una risoluzione di $320x240$ e controllo individuale dei pixel.
+Una particolarità di questo schermo è che offre anche la possibilità di inserire
+una scheda microSD al suo interno, che utilizziamo come memoria per i giochi da
+utilizzare. 
+\begin{figure}[h]
+	\begin{center}
+		\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
+			\input{ili.tex}
+		\end{tikzpicture}
+	\end{center}
+	\caption{Pinout dello schermo \texttt{ILI9341}.}
+	\label{fig:pinout_ili}
+
+\end{figure}
+
+\subsubsection{Gamepad}
+L'ultimo componente hardware necessario è la plancia di gioco: per questo
+utilizziamo una board costruita appositamente per il form factor del GameBoy
+originale, con però $12$ tasti, di cui noi ne utilizzeremo solo $8$: frecce
+direzionali, \texttt{a}, \texttt{b}, \texttt{select} e \texttt{start}.
+\begin{figure}[h]
+	\begin{center}
+		\begin{tikzpicture}[x=0.75pt, y=0.75pt, scale=1]
+			\input{pcb.tex}
+		\end{tikzpicture}
+	\end{center}
+	\caption{PCB della plancia di gioco.}
+	\label{fig:pinout_pcb}
+\end{figure}
+
+
+
+\subsection{Software}
+\subsubsection{Emulatore}
+L'emulatore che abbiamo scelto di portare è un emulatore scritto in C (header
+only) per desktop, chiamato \texttt{peanutGB}. 
 \end{document}
