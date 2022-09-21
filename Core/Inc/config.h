@@ -25,14 +25,15 @@
 
 // Pins used for the buttons
 #define BUTTON_GPIO_PORT GPIOB
-#define BUTTON_A_PIN GPIO_PIN_1
-#define BUTTON_B_PIN GPIO_PIN_2
-#define BUTTON_START_PIN GPIO_PIN_3
-#define BUTTON_SELECT_PIN GPIO_PIN_0
-#define BUTTON_LEFT_PIN GPIO_PIN_5
-#define BUTTON_UP_PIN GPIO_PIN_7
-#define BUTTON_RIGHT_PIN GPIO_PIN_4
-#define BUTTON_DOWN_PIN GPIO_PIN_6
+
+#define BUTTON_B_PIN GPIO_PIN_7
+#define BUTTON_A_PIN GPIO_PIN_6
+#define BUTTON_SELECT_PIN GPIO_PIN_5
+#define BUTTON_START_PIN GPIO_PIN_4
+#define BUTTON_RIGHT_PIN GPIO_PIN_3
+#define BUTTON_LEFT_PIN GPIO_PIN_0
+#define BUTTON_DOWN_PIN GPIO_PIN_1
+#define BUTTON_UP_PIN GPIO_PIN_2
 
 // Stuff used for the SD Card
 // Note that these are used by the external SD card driver,
