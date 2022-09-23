@@ -104,8 +104,6 @@ int main(void) {
 
   InitializeGamepadPins();
 
-  
-
   struct ILI9341_t lcd;
   ILI9341_Init(&lcd, (struct ILI9341_Pin_t){LCD_D7},
                (struct ILI9341_Pin_t){LCD_D6}, (struct ILI9341_Pin_t){LCD_D5},
@@ -118,6 +116,7 @@ int main(void) {
                (struct ILI9341_Pin_t){LCD_WR}, (struct ILI9341_Pin_t){LCD_RD});
   ILI9341_SendInitializationSequence(&lcd);
   ILI9341_SetOrientation(&lcd, HORIZONTAL);
+  ILI9341_FillScreen(&lcd, ILI9341_RgbTo565(50, 50, 50));
 
   FATFS fs;
   FRESULT res;

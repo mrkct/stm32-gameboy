@@ -268,16 +268,21 @@ void ILI9341_SendInitializationSequence(struct ILI9341_t *ili) {
 
 void ILI9341_SetDrawingArea(struct ILI9341_t *ili, uint16_t x1, uint16_t x2,
                             uint16_t y1, uint16_t y2) {
-  // DO NOT ADD CS_ACTIVE / CS_IDLE HERE BECAUSE IT DISABLES THE MEMORY WRITE
-  // AFTER
+  ILI9341_WriteCommand(ili, CMD_COLUMN_ADDRESS_SET);
 
-  ILI9341_WriteCommandWith4Parameters(ili, CMD_COLUMN_ADDRESS_SET,
-                                      (uint8_t)(x1 >> 8), (uint8_t)(x1 & 0xff),
-                                      (uint8_t)(x2 >> 8), (uint8_t)(x2 & 0xff));
+  ILI9341_WriteData(ili, x1 >> 8);
+  ILI9341_WriteData(ili, x1 & 0xff);
 
-  ILI9341_WriteCommandWith4Parameters(ili, CMD_PAGE_ADDRESS_SET,
-                                      (uint8_t)(y1 >> 8), (uint8_t)(y1 & 0xff),
-                                      (uint8_t)(y2 >> 8), (uint8_t)(y2 & 0xff));
+  ILI9341_WriteData(ili, x2 >> 8);
+  ILI9341_WriteData(ili, x2 & 0xff);
+
+  ILI9341_WriteCommand(ili, CMD_PAGE_ADDRESS_SET);
+
+  ILI9341_WriteData(ili, y1 >> 8);
+  ILI9341_WriteData(ili, y1 & 0xff);
+
+  ILI9341_WriteData(ili, y2 >> 8);
+  ILI9341_WriteData(ili, y2 & 0xff);
 }
 
 void ILI9341_DrawFramebufferScaled(struct ILI9341_t *ili,
@@ -414,4 +419,14 @@ void ILI9341_SetOrientation(struct ILI9341_t *ili, enum ILI9341_Orientation o) {
   CS_ACTIVE(ili);
   ILI9341_WriteCommandWithParameter(ili, CMD_MEMORY_ACCESS_CONTROL, b);
   CS_IDLE(ili);
+}
+
+void ILI9341_FillScreen(struct ILI9341_t *ili, uint16_t fill_color) {
+  ILI9341_SetDrawingArea(ili, 0, DISPLAY_WIDTH - 1, 0, DISPLAY_HEIGHT - 1);
+  ILI9341_WriteCommand(ili, CMD_MEMORY_WRITE);
+
+  for (int i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT; i++) {
+    ILI9341_WriteData(ili, fill_color >> 8);
+    ILI9341_WriteData(ili, fill_color);
+  }
 }
