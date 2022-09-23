@@ -1,9 +1,14 @@
-\documentclass[12pt]{article}
+\documentclass[hidelinks,12pt]{article}
 
 \usepackage[italian]{babel}
 \usepackage[a4paper]{geometry}
 \usepackage{amsmath, tikz, hyperref, caption, subcaption}
 \usepackage[capitalize, italian]{cleveref}
+\usepackage[
+   backend=biber,
+   style=numeric,
+ ]{biblatex}
+\addbibresource{bib/db.bib}
 
 % -- Font settings
 \usepackage[math-style=ISO]{unicode-math}
@@ -38,99 +43,230 @@ microSD, invece che con cartucce, e l'utilizzo di uno schermo a colori e
 retroilluminato, al contrario dell'originale schermo a scala di grigi che
 diventava impossibile da vedere sotto scarsa luce.
 
-\section{Architettura}
-\subsection{Hardware}
-%\begin{figure}[h]
-%	\begin{subfigure}[t]{0.32\textwidth}
-%		\begin{center}
-%			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
-%				\input{stm32.tex}
-%			\end{tikzpicture}
-%		\end{center}
-%		\caption{Pinout del microcontrollore STM32F411CEU6.}
-%		\label{fig:pinout_stm32}
-%	\end{subfigure}
-%	\hfill
-%	\begin{subfigure}[t]{0.32\textwidth}
-%		\begin{center}
-%			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
-%				\input{ili.tex}
-%			\end{tikzpicture}
-%		\end{center}
-%		\caption{Pinout dello schermo \texttt{ILI9341}.}
-%		\label{fig:pinout_ili}
-%	\end{subfigure}
-%	\hfill
-%	\begin{subfigure}[t]{0.32\textwidth}
-%		\begin{center}
-%			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=1, transform shape]
-%				\input{pcb.tex}
-%			\end{tikzpicture}
-%		\end{center}
-%		\caption{PCB della plancia di gioco.}
-%		\label{fig:pinout_pcb}
-%	\end{subfigure}
-%\end{figure}
+\section{Hardware}
 Le componenti hardware utilizzate sono tre: il microcontrollore
-\texttt{STM32F411CEU6} (\cref{fig:pinout_stm32}), lo schermo \texttt{ILI9341}
-(\cref{fig:pinout_ili}) e la PCB per la plancia di gioco
-(\cref{fig:pinout_pcb}).
+\texttt{STM32F411CEU6} (\cref{fig:weact_blackpill}), lo schermo \texttt{ILI9341}
+(\cref{fig:ili9341}) e la PCB per la plancia di gioco
+(\cref{fig:pcb}).
 
-\subsubsection{Microcontrollore}
+\subsection{Microcontrollore}
 La componente centrale del progetto è il microcontrollore
 \texttt{STM32F411CEU6}, prodotto da ST, montato sulla board \texttt{WeAct Black
 	Pill V2.0}. Il microcontrollore monta un core \texttt{arm} Cortex-M4 con clock
-massimo $100$MHz. Questo microcontrollore offre $34$ pin GPIO, che verranno
+massimo di $100$MHz. Questo microcontrollore offre $34$ pin GPIO che verranno
 utilizzati per collegare il microcontrollore a schermo e pad; monta $512$KiB di
 memoria flash e $128$KiB di SRAM, necessari per l'esecuzione del software
-necessario.
+che abbiamo utilizzato.
 \begin{figure}
-	\begin{center}
-		\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
-			\input{stm32.tex}
-		\end{tikzpicture}
-	\end{center}
-	\caption{Pinout del microcontrollore STM32F411CEU6.}
-	\label{fig:pinout_stm32}
-
+	\begin{subfigure}[b]{0.45\textwidth}
+		\begin{center}
+			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
+				\input{figures/stm32.tex}
+			\end{tikzpicture}
+		\end{center}
+		\caption{Pinout del microcontrollore STM32F411CEU6.}
+		\label{fig:pinout_stm32}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.45\textwidth}
+		\begin{center}
+			\includegraphics[scale=0.5]{figures/stm32.jpg}
+		\end{center}
+		\caption{La scheda \texttt{WeAct Black Pill V2.0}.}
+		\label{fig:weact_blackpill}
+	\end{subfigure}
 \end{figure}
 
-\subsubsection{Schermo}
+\subsection{Schermo}
 Lo schermo che abbiamo utilizzato, chiamato \texttt{ILI9341}, è uno schermo LCD
 da $2.8''$, con una risoluzione di $320x240$ e controllo individuale dei pixel.
 Una particolarità di questo schermo è che offre anche la possibilità di inserire
 una scheda microSD al suo interno, che utilizziamo come memoria per i giochi da
-utilizzare. 
+utilizzare.
 \begin{figure}[h]
-	\begin{center}
-		\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
-			\input{ili.tex}
-		\end{tikzpicture}
-	\end{center}
-	\caption{Pinout dello schermo \texttt{ILI9341}.}
-	\label{fig:pinout_ili}
+	\begin{subfigure}[b]{0.45\textwidth}
+		\begin{center}
+			\begin{tikzpicture}[x=0.015cm, y=0.015cm, scale=0.5, transform shape]
+				\input{figures/ili.tex}
+			\end{tikzpicture}
+		\end{center}
+		\caption{Pinout dello schermo \texttt{ILI9341}.}
+		\label{fig:pinout_ili}
 
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.45\textwidth}
+		\begin{center}
+			\includegraphics[scale=0.4]{figures/ili.png}
+		\end{center}
+		\caption{Lo schermo ILI9341.}
+		\label{fig:ili9341}
+	\end{subfigure}
 \end{figure}
 
-\subsubsection{Gamepad}
+
+\subsection{Gamepad}
 L'ultimo componente hardware necessario è la plancia di gioco: per questo
 utilizziamo una board costruita appositamente per il form factor del GameBoy
-originale, con però $12$ tasti, di cui noi ne utilizzeremo solo $8$: frecce
-direzionali, \texttt{a}, \texttt{b}, \texttt{select} e \texttt{start}.
+original con $12$ tasti. Ne abbiamo utilizzati solo $8$: frecce direzionali,
+\texttt{a}, \texttt{b}, \texttt{select} e \texttt{start}.
+
 \begin{figure}[h]
 	\begin{center}
-		\begin{tikzpicture}[x=0.75pt, y=0.75pt, scale=1]
-			\input{pcb.tex}
-		\end{tikzpicture}
+		\includegraphics[scale=0.4]{figures/pcb.jpeg}
 	\end{center}
-	\caption{PCB della plancia di gioco.}
-	\label{fig:pinout_pcb}
+	\caption{La PCB GB DMG.}
+	\label{fig:pcb}
 \end{figure}
 
 
+\section{Architettura}
 
-\subsection{Software}
-\subsubsection{Emulatore}
-L'emulatore che abbiamo scelto di portare è un emulatore scritto in C (header
-only) per desktop, chiamato \texttt{peanutGB}. 
+\section{Software}
+\subsection{Scheda SD}
+Fisicamente, la scheda microSD è inserita nello schermo ILI9341, che dispone di
+un'apposita porta. La scheda è stata formattata con un filesystem FATFS e
+abbiamo adeguato una libreria originariamente per Arduino; questa libreria
+permette di leggere
+
+\subsection{Emulatore}
+L'emulatore che abbiamo scelto di portare è un emulatore scritto in C per
+desktop, chiamato \texttt{peanutGB}. Questo emulatore è distribuito utilizzando
+un singolo header C, contenente tutte le funzioni per l'emulazione di un GB,
+disponendo per l'utente tutte le funzionalità base per caricare ed eseguire
+delle ROM del GB comprese di audio e gestione dei comandi.
+
+\subsubsection{Colori}
+Originariamente, il GB disegnava esclusivamente in \textit{grayscale}: ogni
+oggetto (sfondo, dialoghi, sprites, transizioni...) è assegnato ad uno dei $4$
+\textit{layer} che il GB offre, che viene ulteriormente diviso in $4$
+\textit{variables}, come mostrato in \cref{table:gb_colors}.
+\begin{table}[h]
+	\begin{tabular}{|l|l|llll|}
+		\hline
+		\textbf{Layer} & \textbf{Description}                                  & \multicolumn{4}{l|}{\textbf{Variables}}                                                          \\ \hline
+		\textbf{BG0}   & Sfondo                                                & \multicolumn{1}{l|}{B1}                 & \multicolumn{1}{l|}{B2} & \multicolumn{1}{l|}{B3} & B4 \\ \hline
+		\textbf{Win}   & Menu a finestra: stato, pausa, mappa, inventario, HUD & \multicolumn{1}{l|}{W1}                 & \multicolumn{1}{l|}{W2} & \multicolumn{1}{l|}{W3} & W4 \\ \hline
+		\textbf{Obj0}  & Sprites principali                                    & \multicolumn{1}{l|}{–}                  & \multicolumn{1}{l|}{S2} & \multicolumn{1}{l|}{S3} & S4 \\ \hline
+		\textbf{Obj1}  & Transizioni, sprites secondari                        & \multicolumn{1}{l|}{–}                  & \multicolumn{1}{l|}{P2} & \multicolumn{1}{l|}{P3} & P4 \\ \hline
+	\end{tabular}
+	\caption{Tabella dei colori per il GB (da
+		\cite{GameBoyColors}).}
+	\label{table:gb_colors}
+\end{table}
+L'emulatore \texttt{peanutGB} offre all'utente la possibilità di specificare nel
+codice delle \textit{palette} di colori che permettono di mappare layer e
+variabili di singoli giochi a colori in formato BGR565.
+%\begin{table}[h]
+%	\begin{verbatim}
+%/* Donkey Kong */
+%case 0x19: {
+%  const uint16_t palette[3][4] = {
+%      {0x7FFF, 0x7E10, 0x48E7, 0x0000}, /* OBJ0 */
+%      {0x7FFF, 0x7E10, 0x48E7, 0x0000}, /* OBJ1 */
+%      {0x7FFF, 0x7E60, 0x7C00, 0x0000}  /* BG */
+%  };
+%  memcpy(priv->selected_palette, palette, palette_bytes);
+%  break;
+%}
+%  \end{verbatim}
+%\end{table}
+\subsubsection{Porting}
+%L'emulatore richiede che l'utente definisca alcuni hook
+%(descritti in \cref{table:peanutgb_hooks}).
+%\begin{table}[h]
+%	\begin{verbatim}
+%	/**
+%	 * Return byte from ROM at given address.
+%	 */
+%	uint8_t (*gb_rom_read)(struct gb_s*, const uint_fast32_t addr);
+%
+%	/**
+%	 * Return byte from cart RAM at given address.
+%	 */
+%	uint8_t (*gb_cart_ram_read)(struct gb_s*, const uint_fast32_t addr);
+%
+%	/**
+%	 * Write byte to cart RAM at given address.
+%	 */
+%	void (*gb_cart_ram_write)(struct gb_s*, const uint_fast32_t addr,
+%				  const uint8_t val);
+%
+%	/**
+%	 * Notify front-end of error.
+%	 */
+%	void (*gb_error)(struct gb_s*, const enum gb_error_e, const uint16_t val);
+%      \end{verbatim}
+%	\caption{Hook di \texttt{peanutGB} implementati dall'utente.}
+%	\label{table:peanutgb_hooks}
+%\end{table}
+%@TODO
+
+\subsection{Driver ILI}
+Per interfacciarsi con lo schermo è stato necessario scrivere un driver
+apposito: per questa componente in particolare abbiamo speso buona parte del
+tempo necessario per il completamento del progetto. Lo schermo \texttt{ILI9341}
+dispone per l'utilizzatore $5$ pin di controllo: \texttt{LCD\_RD},
+\texttt{LCD\_WR}, \texttt{LCD\_RS}, \texttt{LCD\_CS}, ed \texttt{LCD\_RST}.
+Questi pin vengono utilizzati per modificare lo stato della scheda, come
+descritto nella documentazione ufficiale.
+\begin{table}[h]
+	\begin{verbatim}
+
+  /**
+  * Inizializza lo schermo
+  */
+  int ILI9341_Init(struct ILI9341_t *ili, struct ILI9341_Pin_t D7,
+                 struct ILI9341_Pin_t D6, struct ILI9341_Pin_t D5,
+                 struct ILI9341_Pin_t D4, struct ILI9341_Pin_t D3,
+                 struct ILI9341_Pin_t D2, struct ILI9341_Pin_t D1,
+                 struct ILI9341_Pin_t D0, struct ILI9341_Pin_t RST,
+                 struct ILI9341_Pin_t CS, struct ILI9341_Pin_t RS,
+                 struct ILI9341_Pin_t WR, struct ILI9341_Pin_t RD);
+
+  [...]
+
+  /**
+  * Disegna sullo schermo il framebuffer ridimensionato
+  */
+  void ILI9341_DrawFramebufferScaled(struct ILI9341_t *ili, 
+                 uint16_t framebuffer[]);
+  \end{verbatim}
+	\caption{}
+	\label{table:driver_ili}
+\end{table}
+\subsubsection{Ad alto livello}
+Nella \cref{table:driver_ili} mostriamo parte delle funzioni che, ad alto
+livello, il driver implementa: ovviamente, \texttt{ILI9341\_Init} è utilizzata
+per inizializzare l'unità; \texttt{ILI9341\_DrawFramebufferScaled}, anch'essa
+abbastanza auto-esplicativa, è tra le funzioni del driver più utilizzate dal
+codice utente. Originariamente il GB mostrava uno schermo $160\times144$: tra le
+migliorie che abbiamo implementate vi è anche lo scaling dell'immagine dello
+schermo, che è aumentata a $320\times240$.
+
+\subsubsection{Implementazione}
+Esaminiamo ora l'implementazione di queste due funzioni. Una struct mantiene lo
+stato interno dei collegamenti tra microcontrollore e scheda; tramite le
+procedure offerte dal meccanismo GPIO di \texttt{HAL} possiamo impostare lo
+stato dei pin dello schermo. La funzione di inizializzazione imposta i pin GPIO
+del microcontrollore collegati ai pin di controllo dello schermo come pin di
+output.  
+
+
+\subsection{GUI}
+\subsubsection{Font PSF}
+
+\section{Considerazioni finali}
+\subsection{Assemblaggio}
+Abbiamo speso una buona parte del tempo totale della realizzazione del progetto
+a pianificare e tentare vari approcci per l'assemblaggio finale.
+\subsection{Potenza}
+\subsection{Realizzazione}
+
+
+
+
+\addcontentsline{toc}{section}{References}
+\nocite{*}
+\printbibliography
 \end{document}
