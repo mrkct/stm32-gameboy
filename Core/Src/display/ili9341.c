@@ -320,14 +320,16 @@ void ILI9341_DrawFramebufferScaled(struct ILI9341_t *ili,
   const int SCALED_WIDTH = 240;
   const int SCALED_HEIGHT = 216;
 
+  const int OFF_X = 36;
+
   {
     ILI9341_WriteCommand(ili, CMD_COLUMN_ADDRESS_SET);
 
-    ILI9341_WriteData(ili, 0);
-    ILI9341_WriteData(ili, 0);
+    ILI9341_WriteData(ili, 0 + OFF_X);
+    ILI9341_WriteData(ili, 0 + OFF_X);
 
-    ILI9341_WriteData(ili, (SCALED_WIDTH - 1) >> 8);
-    ILI9341_WriteData(ili, (SCALED_WIDTH - 1) & 0xff);
+    ILI9341_WriteData(ili, (SCALED_WIDTH - 1 + OFF_X) >> 8);
+    ILI9341_WriteData(ili, (SCALED_WIDTH - 1 + OFF_X) & 0xff);
 
     ILI9341_WriteCommand(ili, CMD_PAGE_ADDRESS_SET);
 
