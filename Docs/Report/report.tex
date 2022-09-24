@@ -44,15 +44,25 @@ retroilluminato, al contrario dell'originale schermo a scala di grigi che
 diventava impossibile da vedere sotto scarsa luce.
 
 \section{Hardware}
-Le componenti hardware utilizzate sono tre: il microcontrollore
-\texttt{STM32F411CEU6} (\cref{fig:weact_blackpill}), lo schermo \texttt{ILI9341}
-(\cref{fig:ili9341}) e la PCB per la plancia di gioco
-(\cref{fig:pcb}).
+Le componenti hardware utilizzate sono tre: una scheda basata sul
+SoC \texttt{STM32F411CEU6} (\cref{fig:weact_blackpill}),
+uno schermo TFT da $2.4"$ utilizzante il controllore \texttt{ILI9341}
+(\cref{fig:ili9341}) ed infine una PCB per la plancia di gioco clone
+dell'originale utilizzata nel GameBoy (\cref{fig:pcb}).
+Non è stato necessario comprare un lettore di schede microSD perchè il
+display scelto ne integra uno al suo interno.
+
+Oltre a questi componenti attivi sono stati utilizzati un interruttore SPDT,
+dei pulsanti in plastica ed i rispettivi gommini da posizionare sopra la PCB
+dei tasti, delle millefori (insieme a stagno, cavi e pin) per costruire i
+collegamenti in modo da minimizzare lo spazio utilizzato ed infine un case di
+GameBoy dove è stato alloggiato il tutto.
 
 \subsection{Microcontrollore}
 La componente centrale del progetto è il microcontrollore
-\texttt{STM32F411CEU6}, prodotto da ST, montato sulla board \texttt{WeAct Black
-	Pill V2.0}. Il microcontrollore monta un core \texttt{arm} Cortex-M4 con clock
+\texttt{STM32F411CEU6}, prodotto da ST e montato sulla board
+\texttt{WeAct Black Pill V2.0}.
+Il microcontrollore monta un core \texttt{ARM} Cortex-M4 con clock
 massimo di $100$MHz. Questo microcontrollore offre $34$ pin GPIO che verranno
 utilizzati per collegare il microcontrollore a schermo e pad; monta $512$KiB di
 memoria flash e $128$KiB di SRAM, necessari per l'esecuzione del software
@@ -78,8 +88,9 @@ che abbiamo utilizzato.
 \end{figure}
 
 \subsection{Schermo}
-Lo schermo che abbiamo utilizzato, chiamato \texttt{ILI9341}, è uno schermo LCD
-da $2.8''$, con una risoluzione di $320x240$ e controllo individuale dei pixel.
+Lo schermo che abbiamo utilizzato, basato sul controller \texttt{ILI9341}, è
+uno schermo LCD da $2.4"$, con una risoluzione di $320x240$ e controllo
+individuale dei pixel.
 Una particolarità di questo schermo è che offre anche la possibilità di inserire
 una scheda microSD al suo interno, che utilizziamo come memoria per i giochi da
 utilizzare.
@@ -104,12 +115,11 @@ utilizzare.
 	\end{subfigure}
 \end{figure}
 
-
 \subsection{Gamepad}
 L'ultimo componente hardware necessario è la plancia di gioco: per questo
 utilizziamo una board costruita appositamente per il form factor del GameBoy
 original con $12$ tasti. Ne abbiamo utilizzati solo $8$: frecce direzionali,
-\texttt{a}, \texttt{b}, \texttt{select} e \texttt{start}.
+\texttt{A}, \texttt{B}, \texttt{SELECT} e \texttt{START}.
 
 \begin{figure}[h]
 	\begin{center}
