@@ -6,10 +6,16 @@
         "Core/Inc",
         "Core/Inc/display",
         "Core/Inc/emulator",
+        "Core/Inc/gamepad",
+        "Core/Inc/gui",
+        "Core/Src/gui",
         "Drivers/CMSIS/Device/ST/STM32F4xx/Include",
         "Drivers/CMSIS/Include",
         "Drivers/STM32F4xx_HAL_Driver/Inc",
-        "Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"
+        "Drivers/STM32F4xx_HAL_Driver/Inc/Legacy",
+        "FATFS/App",
+        "FATFS/Target",
+        "Middlewares/Third_Party/FatFs/src"
       ],
       "defines": [
         "STM32F411xE",

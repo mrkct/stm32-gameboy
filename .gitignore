@@ -4,3 +4,10 @@ build/*
 .project.bak
 compile_commands.json
 .compile_commands.json
+**/*.project
+**/*.aux
+**/*.bcf
+**/*.log
+**/*.out
+**/*.run.xml
+**/report.pdf
