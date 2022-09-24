@@ -46,7 +46,7 @@ right = [
     "G",
     "5V",
 ]
-stm = mcdraw.Part("STM32F411CEU6", left=left, right=right)
+stm32 = mcdraw.Part("STM32F411CEU6", left=left, right=right)
 
 
 ### Definition of the ILI9341
@@ -84,3 +84,39 @@ up = [
     "RIGHT" "GND",
 ]
 pcb = mcdraw.Part("GB_DMG_PCB", up=up)
+
+
+### Control connections from stm32 to ili
+stm32_to_ili_ctrl = mcdraw.make_connections([
+    (stm32.left["A8"], ili.right["LCD_RD"]),
+    (stm32.left["A10"], ili.right["LCD_RS"]),
+    (stm32.left["A9"], ili.right["LCD_WR"]),
+    (stm32.left["A11"], ili.right["LCD_CS"]),
+])
+
+### Data connections from stm32 to ili
+stm32_to_ili_data_tup = [
+    (stm32.right["A0"], ili.left["LCD_D0"]),
+    (stm32.right["A1"], ili.left["LCD_D1"]),
+    (stm32.right["A2"], ili.left["LCD_D2"]),
+    (stm32.right["A3"], ili.left["LCD_D3"]),
+    (stm32.right["A4"], ili.left["LCD_D4"]),
+    (stm32.right["A5"], ili.left["LCD_D5"]),
+    (stm32.right["A6"], ili.left["LCD_D6"]),
+    (stm32.right["A7"], ili.left["LCD_D7"]),
+    (stm32.left["A8"], ili.left["LCD_D8"]),
+    (stm32.left["A9"], ili.left["LCD_D9"]),
+]
+
+
+### Connections from stm32 to the pcb
+stm32_to_pcb_tup = [
+    (stm32.left["B7"], pcb.up["B"]),
+    (stm32.left["B6"], pcb.up["A"]),
+    (stm32.left["B5"], pcb.up["SELECT"]),
+    (stm32.left["B4"], pcb.up["START"]),
+    (stm32.left["B3"], pcb.up["RIGHT"]),
+    (stm32.right["B0"], pcb.up["LEFT"]),
+    (stm32.right["B1"], pcb.up["DOWN"]),
+    (stm32.right["B2"], pcb.up["UP"]),
+]
