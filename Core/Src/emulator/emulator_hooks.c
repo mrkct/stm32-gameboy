@@ -242,6 +242,9 @@ static void ensure_savefile_is_big_enough(FIL *savefile, struct gb_s *gb) {
   }
 }
 
+extern void PutChar (uint16_t *buffer, char c, unsigned short int line,
+         unsigned short int col, unsigned int bg, unsigned int fg);
+
 void StartEmulator(struct ILI9341_t *display, struct GameChoice *choice,
                    struct tm datetime) {
   InitializeCache(&cache, &(choice->game));
@@ -298,6 +301,21 @@ void StartEmulator(struct ILI9341_t *display, struct GameChoice *choice,
       rtc_timer -= 1000;
       gb_tick_rtc(&gb);
     }
+
+    #ifdef DEBUG_SHOW_FPS
+    PutChar(
+      framebuffer,
+      '0' + (fps_counts[fps_counts_pos] / 10) % 10,
+      0, 16,
+      ILI9341_RgbTo565(255, 0, 0), ILI9341_RgbTo565(255, 255, 255)
+    );
+    PutChar(
+      framebuffer,
+      '0' + fps_counts[fps_counts_pos] % 10,
+      0, 17,
+      ILI9341_RgbTo565(255, 0, 0), ILI9341_RgbTo565(255, 255, 255)
+    );
+    #endif
 
     ILI9341_DrawFramebufferScaled(display, framebuffer);
 

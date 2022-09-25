@@ -239,7 +239,7 @@ LoadGamesPage (const unsigned short int selected_game,
                       avail_games);
 }
 
-static void
+void
 PutChar (uint16_t *buffer, char c, unsigned short int line,
          unsigned short int col, unsigned int bg, unsigned int fg)
 {
