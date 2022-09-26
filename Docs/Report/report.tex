@@ -58,15 +58,14 @@ dei tasti, delle millefori (insieme a stagno, cavi e pin) per costruire i
 collegamenti in modo da minimizzare lo spazio utilizzato ed infine un case di
 GameBoy dove è stato alloggiato il tutto.
 
-\subsection{Microcontrollore}
+%\subsection{Microcontrollore}
 La componente centrale del progetto è il microcontrollore
-\texttt{STM32F411CEU6}, prodotto da ST e montato sulla board
-\texttt{WeAct Black Pill V2.0}.
-Il microcontrollore monta un core \texttt{ARM} Cortex-M4 con clock
-massimo di $100$MHz. Questo microcontrollore offre $34$ pin GPIO che verranno
-utilizzati per collegare il microcontrollore a schermo e pad; monta $512$KiB di
-memoria flash e $128$KiB di SRAM, necessari per l'esecuzione del software
-che abbiamo utilizzato.
+\texttt{STM32F411CEU6}, prodotto da ST e montato sulla board \texttt{WeAct Black
+	Pill V2.0}. Il microcontrollore monta un core \texttt{ARM} Cortex-M4 con clock
+massimo di $100$MHz (overclockato a $140$). Questo microcontrollore offre $34$
+pin GPIO che verranno utilizzati per collegare il microcontrollore a schermo e
+pad; monta $512$KiB di memoria flash e $128$KiB di SRAM, necessari per
+l'esecuzione del software che abbiamo utilizzato.
 \begin{figure}
 	\begin{subfigure}[b]{0.45\textwidth}
 		\begin{center}
@@ -86,14 +85,12 @@ che abbiamo utilizzato.
 		\label{fig:weact_blackpill}
 	\end{subfigure}
 \end{figure}
-
-\subsection{Schermo}
+%\subsection{Schermo}
 Lo schermo che abbiamo utilizzato, basato sul controller \texttt{ILI9341}, è
 uno schermo LCD da $2.4"$, con una risoluzione di $320x240$ e controllo
 individuale dei pixel.
 Una particolarità di questo schermo è che offre anche la possibilità di inserire
-una scheda microSD al suo interno, che utilizziamo come memoria per i giochi da
-utilizzare.
+una scheda microSD al suo interno, che utilizziamo come memoria per i giochi.
 \begin{figure}[h]
 	\begin{subfigure}[b]{0.45\textwidth}
 		\begin{center}
@@ -115,10 +112,10 @@ utilizzare.
 	\end{subfigure}
 \end{figure}
 
-\subsection{Gamepad}
+%\subsection{Gamepad}
 L'ultimo componente hardware necessario è la plancia di gioco: per questo
 utilizziamo una board costruita appositamente per il form factor del GameBoy
-original con $12$ tasti. Ne abbiamo utilizzati solo $8$: frecce direzionali,
+originale con $12$ tasti. Ne abbiamo utilizzati solo $8$: frecce direzionali,
 \texttt{A}, \texttt{B}, \texttt{SELECT} e \texttt{START}.
 
 \begin{figure}[h]
@@ -133,18 +130,21 @@ original con $12$ tasti. Ne abbiamo utilizzati solo $8$: frecce direzionali,
 \section{Architettura}
 
 \section{Software}
-\subsection{Scheda SD}
-Fisicamente, la scheda microSD è inserita nello schermo ILI9341, che dispone di
-un'apposita porta. La scheda è stata formattata con un filesystem FATFS e
-abbiamo adeguato una libreria originariamente per Arduino; questa libreria
-permette di leggere
+Il software necessario per il progetto si divide nei seguenti moduli: gestione
+della scheda microSD, emulatore, interfaccia con lo schermo e una GUI per la
+selezione dei giochi.
 
 \subsection{Emulatore}
-L'emulatore che abbiamo scelto di portare è un emulatore scritto in C per
-desktop, chiamato \texttt{peanutGB}. Questo emulatore è distribuito utilizzando
-un singolo header C, contenente tutte le funzioni per l'emulazione di un GB,
-disponendo per l'utente tutte le funzionalità base per caricare ed eseguire
-delle ROM del GB comprese di audio e gestione dei comandi.
+L'emulatore che abbiamo scelto è scritto in C (originariamente per desktop),
+chiamato \texttt{peanutGB}. Questo emulatore è distribuito utilizzando un
+singolo header C contenente tutte le funzioni per l'emulazione di un GB,
+disponendo per l'utente le funzionalità base per l'esecuzione delle ROM del GB
+comprese di audio e gestione dei comandi: sarà compito dell'utente implementare
+degli \textit{hooks} (\texttt{gb\_rom\_read}, \texttt{gb\_cart\_ram\_read},
+\texttt{gb\_cart\_ram\_write}, \texttt{gb\_error}) per fornire all'emulatore
+l'interfaccia con la  ROM del gioco da giocare e la gestione degli errori. Il
+porting di questo emulatore per il microcontrollore non ha richiesto particolari
+modifiche.
 
 \subsubsection{Colori}
 Originariamente, il GB disegnava esclusivamente in \textit{grayscale}: ogni
@@ -167,52 +167,41 @@ oggetto (sfondo, dialoghi, sprites, transizioni...) è assegnato ad uno dei $4$
 L'emulatore \texttt{peanutGB} offre all'utente la possibilità di specificare nel
 codice delle \textit{palette} di colori che permettono di mappare layer e
 variabili di singoli giochi a colori in formato BGR565.
-%\begin{table}[h]
-%	\begin{verbatim}
-%/* Donkey Kong */
-%case 0x19: {
-%  const uint16_t palette[3][4] = {
-%      {0x7FFF, 0x7E10, 0x48E7, 0x0000}, /* OBJ0 */
-%      {0x7FFF, 0x7E10, 0x48E7, 0x0000}, /* OBJ1 */
-%      {0x7FFF, 0x7E60, 0x7C00, 0x0000}  /* BG */
-%  };
-%  memcpy(priv->selected_palette, palette, palette_bytes);
-%  break;
-%}
-%  \end{verbatim}
-%\end{table}
-\subsubsection{Porting}
-%L'emulatore richiede che l'utente definisca alcuni hook
-%(descritti in \cref{table:peanutgb_hooks}).
-%\begin{table}[h]
-%	\begin{verbatim}
-%	/**
-%	 * Return byte from ROM at given address.
-%	 */
-%	uint8_t (*gb_rom_read)(struct gb_s*, const uint_fast32_t addr);
-%
-%	/**
-%	 * Return byte from cart RAM at given address.
-%	 */
-%	uint8_t (*gb_cart_ram_read)(struct gb_s*, const uint_fast32_t addr);
-%
-%	/**
-%	 * Write byte to cart RAM at given address.
-%	 */
-%	void (*gb_cart_ram_write)(struct gb_s*, const uint_fast32_t addr,
-%				  const uint8_t val);
-%
-%	/**
-%	 * Notify front-end of error.
-%	 */
-%	void (*gb_error)(struct gb_s*, const enum gb_error_e, const uint16_t val);
-%      \end{verbatim}
-%	\caption{Hook di \texttt{peanutGB} implementati dall'utente.}
-%	\label{table:peanutgb_hooks}
-%\end{table}
-%@TODO
 
-\subsection{Driver ILI}
+\subsection{Scheda SD}
+Fisicamente, la scheda microSD è inserita nello schermo ILI9341, che dispone di
+un'apposita porta; per interfacciarci con essa, abbiamo deciso di formattare la
+scheda con un filesystem FAT e utilizzare, come descritto in \cite{stm1721}, una
+libreria per l'interazione con tali filesystem astratta dal livello di fisico di
+I/O; abbiamo pertanto utilizzato un'ulteriore libreria per interfacciarci con
+la scheda SD: questo meccanismo viene implementato utilizzando i pin esposti
+dallo schermo e direttamente collegati alla microSD (\texttt{SD\_SCK},
+\texttt{SD\_DO}, \texttt{SD\_DI}, \texttt{SD\_SS}) che permettono l'utilizzo
+dell'interfaccia seriale della scheda.
+
+\subsubsection{Caching dei settori}
+Abbiamo osservato che durante l'esecuzione la lettura dei blocchi della SD
+costituiva un collo di bottiglia per la performance, tanto da rendere
+impossibile l'utilizzo della console. Per mitigare questo problema abbiamo
+implementato un meccanismo di caching dei settori della SD: durante
+l'inizializzazione dell'emulatore, viene creata in memoria una struct
+\texttt{Cache}, una linked list in cui vengono salvati i contenuti dei settori
+della SD. In questa struct vengono mantenuti anche i metadati necessari per
+ritrovare il blocco utilizzato più recentemente e meno recentemente; questi dati
+e la lista vengono aggiornati in base alle richieste, inserendo il settore
+richiesto più recentemente in cima alla lista e contestualmente rimuovere quello
+richiesto meno recentemente. Cambiando i parametri che descrivono la grandezza
+dei settori da salvare e il numero di settori da salvare, che in conclusione
+sono stati impostati a $512$ byte e $40$ settori, siamo riusciti a rendere
+il GB utilizzabile.
+
+%\subsubsection{Scrittura dei salvataggi}
+%Durante l'esecuzione dei giochi, gli utenti possono salvare i propri progressi
+%in dei file appositi gestiti dall'emulatore. Invece di rallentare l'esecuzione ad
+%ogni salvataggio,  abbiamo deciso di utilizzare una coda per scrivere i
+%salvataggi in blocco. 
+
+\subsection{Driver ILI9341}
 Per interfacciarsi con lo schermo è stato necessario scrivere un driver
 apposito: per questa componente in particolare abbiamo speso buona parte del
 tempo necessario per il completamento del progetto. Lo schermo \texttt{ILI9341}
@@ -250,28 +239,142 @@ Nella \cref{table:driver_ili} mostriamo parte delle funzioni che, ad alto
 livello, il driver implementa: ovviamente, \texttt{ILI9341\_Init} è utilizzata
 per inizializzare l'unità; \texttt{ILI9341\_DrawFramebufferScaled}, anch'essa
 abbastanza auto-esplicativa, è tra le funzioni del driver più utilizzate dal
-codice utente. Originariamente il GB mostrava uno schermo $160\times144$: tra le
-migliorie che abbiamo implementate vi è anche lo scaling dell'immagine dello
-schermo, che è aumentata a $320\times240$.
-
-\subsubsection{Implementazione}
+codice utente per disegnare sullo schermo. Originariamente il GB mostrava uno
+schermo $160\times144$: tra le migliorie che abbiamo implementate vi è anche lo
+scaling dell'immagine dello schermo, che è aumentata a $320\times240$.
 Esaminiamo ora l'implementazione di queste due funzioni. Una struct mantiene lo
-stato interno dei collegamenti tra microcontrollore e scheda; tramite le
+stato interno dei collegamenti tra microcontrollore e scheda, e tramite le
 procedure offerte dal meccanismo GPIO di \texttt{HAL} possiamo impostare lo
-stato dei pin dello schermo. La funzione di inizializzazione imposta i pin GPIO
-del microcontrollore collegati ai pin di controllo dello schermo come pin di
-output.  
+stato dei pin dello schermo.
 
+\subsubsection{Inizializzazione}
+La funzione di inizializzazione è parametrizzata dagli identificatori dei pin
+GPIO del microcontrollore che vengono collegati ai pin della scheda: una volta
+inizializzata la struct che mantiene le corrispondenze di questi collegamenti,
+si procede ad inizializzare i pin di controllo della scheda ( \texttt{LCD\_RD},
+\texttt{LCD\_WR}, \texttt{LCD\_RS}, \texttt{LCD\_CS}, ed \texttt{LCD\_RST}) come
+pin di output tramite le funzioni messe a disposizione da HAL. Diamo quindi uno
+stato iniziale alla scheda prima di procedere alla sequenza di inizializzazione:
+il pin \texttt{LCD\_CS} è impostato come \textit{attivo} (quindi \textit{low},
+come da richieste della scheda). Questo significa che la scheda è pronta a
+ricevere dei comandi inviati dal microcontrollore. Si imposta quindi come
+disabilitato (ossia \textit{high}) il pin \texttt{LCD\_RST}: questo pin forza la
+scheda ad eseguire il reset, pertanto durante tutta l'esecuzione (o finché non
+si desidera resettare lo schermo) dovrà rimanere disabilitato.
+Si impostano disablitati i pin \texttt{LCD\_WR} e \texttt{LCD\_RD}; infine si
+imposta come attivo (quindi \textit{low}) il pin \texttt{LCD\_CD}, che sta a
+significare che la scheda riceverà sui pin dati un comando.
+
+L'effettiva sequenza di inizializzazione della scheda comporta l'attivazione del
+pin \texttt{LCD\_RST} seguito da un delay  e la seguente disattivazione dello
+stesso pin seguito da un ulteriore delay.
+
+\subsubsection{Disegnare sullo schermo}
+La funzione \texttt{ILI9341\_DrawFramebufferScaled} utilizza l'interfaccia della
+scheda e il protocollo descritto nella documentazione per disegnare sullo
+schermo. Nella nostra implementazione abbiamo scelto di utilizzare un framebuffer
+globale sul quale emulatore e GUI disegnano.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=0.8]{figures/wr_cycle.png}
+	\caption{}
+	\label{fig:ili_wr_cycle}
+\end{figure}
+
+Per implementare il protocollo, la funzione imposta lo schermo per
+la ricezione di comandi e invia inizialmente una \texttt{nop}, con lo scopo di
+sincronizzare scheda e microcontrollore.
+
+Il protocollo della scheda prevede che il client, per disegnare sullo schermo,
+imposti inizialmente l'area sulla quale vuole disegnare.
+L'utente dispone dei comandi \texttt{COLUMN\_ADDRESS\_SET} e
+\texttt{PAGE\_ADDRESS\_SET}: il primo comando è utilizzato per specificare le
+due colonne destra e sinistra che delimitano l'area in cui si vuole disegnare, e
+simmetricamente fa il secondo comando; entrambi i comandi richiedono quattro
+parametri da $8$bit che indicano i $2+2$ byte necessari per identificare righe e
+colonne. Una volta specificata l'area, l'utente utilizzerà il comando
+\texttt{MEMORY\_WRITE} per inviare alla scheda i dati che descrivono il disegno:
+ogni pixel dello schermo è descritto da due byte in formato BGR565.
+
+Nell'implementazione abbiamo deciso di forzare l'utilizzo dei pin
+\texttt{A0}-\texttt{A7} del microcontrollore per l'invio dei dati allo schermo
+(ossia devono essere collegati ai pin \texttt{D0}-\texttt{D7} dello schermo): in
+questo modo possiamo scrivere direttamente sul registro \texttt{GPIOA->ODR} il
+byte da inviare. Possiamo dunque evitare l'utilizzo della HAL di ST e di
+operazioni di \texttt{mask} e \texttt{shift}: questo ci permette di ottenere
+prestazioni migliori evitando overhead non indifferenti.
+
+\paragraph{Scaling}
+L'algoritmo di scaling che abbiamo implementato cerca di scalare l'immagine
+prodotta da GUI ed emulatore senza sacrificare le performance, ed è pertanto
+relativamente semplice: aggiungiamo un pixel ogni due, sia in verticale che in
+orizzontale; il nuovo pixel avrà come colore la media dei colori dei due pixel
+che lo hanno generato.
 
 \subsection{GUI}
+\begin{figure}[h]
+	\begin{center}
+		\begin{subfigure}[b]{0.4\textwidth}
+			\begin{center}
+				\includegraphics[scale=0.65]{figures/game_choice_gui.png}
+			\end{center}
+			\caption{}
+			\label{fig:gui_choice}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}[b]{0.4\textwidth}
+			\begin{center}
+				\includegraphics[scale=0.2]{figures/error_gui.png}
+			\end{center}
+			\caption{}
+			\label{fig:gui_err}
+		\end{subfigure}
+	\end{center}
+	\caption{}
+\end{figure}
+Abbiamo scritto una semplice GUI per permettere all'utente di scegliere i giochi
+disponibili sulla scheda SD (\cref{fig:gui_choice}) o, in caso non vi siano
+giochi disponibili sulla scheda SD (o non sia inserita) mostrare a schermo un
+messaggio di errore (\cref{fig:gui_err}). 
+
 \subsubsection{Font PSF}
+Questo componente software scrivere direttamente i valori dei pixel nel
+framebuffer globale. Per poter mostrare a video i nomi dei giochi disponibili è
+necessario implementare la risoluzione di font sullo schermo: per fare questo
+abbiamo utilizzato i font PSF che codificano ogni \textit{glifo} (ossia ogni
+simbolo, ad esempio una lettera) come bitmap. Nel font che abbiamo scelto, i
+simboli vengono codificati come $8$ righe di $8$ bit ciascuna: un bit $i = 0$
+indica che per mostrare il glifo, il pixel corrispondente al bit $i$ deve avere
+il colore di background dello schermo, mentre un bit $i = 1$ indica che il pixel
+deve avere il colore di foreground. Assieme con queste bitmap, per implementare
+la GUI sono bastate delle funzioni che svolgono dei  semplici calcoli sulle
+dimensione del framebuffer (ossia calcolare i rettangoli in cui andare a
+dipingere i glifi). 
+\begin{table}[h]
+  \begin{verbatim}
+// Character 48
+Bitmap: -#####-- \
+        ##---##- \
+        ##--###- \
+        ##-#-##- \
+        ###--##- \
+        ##---##- \
+        -#####-- \
+        --------
+Unicode: [00000030];
+  \end{verbatim}
+  \caption{Il glifo ``0'' nel font PSF \texttt{koi8r} per l'alfabeto cirillico.}
+\end{table}
 
 \section{Considerazioni finali}
 \subsection{Assemblaggio}
 Abbiamo speso una buona parte del tempo totale della realizzazione del progetto
-a pianificare e tentare vari approcci per l'assemblaggio finale.
+a pianificare e tentare vari approcci per l'assemblaggio finale. Questa parte di
+svolgimento, infatti, si è rivelata più ostica del previsto, poiché l'insieme
+dei componenti e dei cavi non stava nel case del GB. 
+
 \subsection{Potenza}
-\subsection{Realizzazione}
 
 
 
