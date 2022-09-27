@@ -151,10 +151,19 @@ Originariamente, il GB disegnava esclusivamente in \textit{grayscale}: ogni
 oggetto (sfondo, dialoghi, sprites, transizioni...) è assegnato ad uno dei $4$
 \textit{layer} che il GB offre, che viene ulteriormente diviso in $4$
 \textit{variables}, come mostrato in \cref{table:gb_colors}.
+Con il rilascio del \textit{Game Boy Color}, \textit{Nintendo} preparò una serie
+di \textit{palette} di colori per permettere ai giochi rilasciati in bianco e nero
+di diventare a colori. Queste palette sono semplicemente 4 colori in formato BGR565
+per ognuno dei 4 layer supportati.
+
+Abbiamo estratto alcune palette dei giochi più popolari ed implementato questo
+meccanismo di conversione dei colori grayscale nel corrispondente colore della
+palette del layer del momento.
+
 \begin{table}[h]
 	\begin{tabular}{|l|l|llll|}
 		\hline
-		\textbf{Layer} & \textbf{Description}                                  & \multicolumn{4}{l|}{\textbf{Variables}}                                                          \\ \hline
+		\textbf{Layer} & \textbf{Descrizione di uso tipico}                    & \multicolumn{4}{l|}{\textbf{Variabili}}                                                          \\ \hline
 		\textbf{BG0}   & Sfondo                                                & \multicolumn{1}{l|}{B1}                 & \multicolumn{1}{l|}{B2} & \multicolumn{1}{l|}{B3} & B4 \\ \hline
 		\textbf{Win}   & Menu a finestra: stato, pausa, mappa, inventario, HUD & \multicolumn{1}{l|}{W1}                 & \multicolumn{1}{l|}{W2} & \multicolumn{1}{l|}{W3} & W4 \\ \hline
 		\textbf{Obj0}  & Sprites principali                                    & \multicolumn{1}{l|}{–}                  & \multicolumn{1}{l|}{S2} & \multicolumn{1}{l|}{S3} & S4 \\ \hline
@@ -164,9 +173,6 @@ oggetto (sfondo, dialoghi, sprites, transizioni...) è assegnato ad uno dei $4$
 		\cite{GameBoyColors}).}
 	\label{table:gb_colors}
 \end{table}
-L'emulatore \texttt{peanutGB} offre all'utente la possibilità di specificare nel
-codice delle \textit{palette} di colori che permettono di mappare layer e
-variabili di singoli giochi a colori in formato BGR565.
 
 \subsection{Scheda SD}
 Fisicamente, la scheda microSD è inserita nello schermo ILI9341, che dispone di
@@ -182,18 +188,26 @@ dell'interfaccia seriale della scheda.
 \subsubsection{Caching dei settori}
 Abbiamo osservato che durante l'esecuzione la lettura dei blocchi della SD
 costituiva un collo di bottiglia per la performance, tanto da rendere
-impossibile l'utilizzo della console. Per mitigare questo problema abbiamo
-implementato un meccanismo di caching dei settori della SD: durante
-l'inizializzazione dell'emulatore, viene creata in memoria una struct
-\texttt{Cache}, una linked list in cui vengono salvati i contenuti dei settori
-della SD. In questa struct vengono mantenuti anche i metadati necessari per
+impossibile l'utilizzo della console. Sfortunatamente la grande maggioranza
+dei giochi sono troppo grandi per essere caricati interamente in memoria RAM,
+con alcuni giochi che addirittura arrivano a MB di dimensione.
+
+Per mitigare questo problema abbiamo implementato un meccanismo di caching dei
+dati letti dalla SD con una strategia "Least Recently Used".
+Durante l'inizializzazione dell'emulatore viene creata in memoria una struct
+\texttt{Cache} contenente una linked list in cui vengono salvati i contenuti
+dei blocchi letti dalla della SD.
+In questa struct vengono mantenuti anche i metadati necessari per
 ritrovare il blocco utilizzato più recentemente e meno recentemente; questi dati
-e la lista vengono aggiornati in base alle richieste, inserendo il settore
+e la lista vengono aggiornati in base alle richieste, inserendo il blocco
 richiesto più recentemente in cima alla lista e contestualmente rimuovere quello
-richiesto meno recentemente. Cambiando i parametri che descrivono la grandezza
-dei settori da salvare e il numero di settori da salvare, che in conclusione
-sono stati impostati a $512$ byte e $40$ settori, siamo riusciti a rendere
-il GB utilizzabile.
+richiesto meno recentemente.
+
+Tramite misurazioni empiriche abbiamo ottenuto le performance migliori
+utilizzando una dimensione dei blocchi di $512$ bytes, riservando $20$KB di
+memoria RAM per la cache (dunque fino a $40$ blocchi caricati temporanemente).
+Questo meccanismo di caching è un modulo fondamentale; senza di esso l'esecuzione
+dei giochi diventa talmente lenta al punto da essere inaccettabile.
 
 %\subsubsection{Scrittura dei salvataggi}
 %Durante l'esecuzione dei giochi, gli utenti possono salvare i propri progressi
@@ -212,9 +226,6 @@ descritto nella documentazione ufficiale.
 \begin{table}[h]
 	\begin{verbatim}
 
-  /**
-  * Inizializza lo schermo
-  */
   int ILI9341_Init(struct ILI9341_t *ili, struct ILI9341_Pin_t D7,
                  struct ILI9341_Pin_t D6, struct ILI9341_Pin_t D5,
                  struct ILI9341_Pin_t D4, struct ILI9341_Pin_t D3,
@@ -225,9 +236,6 @@ descritto nella documentazione ufficiale.
 
   [...]
 
-  /**
-  * Disegna sullo schermo il framebuffer ridimensionato
-  */
   void ILI9341_DrawFramebufferScaled(struct ILI9341_t *ili, 
                  uint16_t framebuffer[]);
   \end{verbatim}
@@ -336,7 +344,10 @@ che lo hanno generato.
 Abbiamo scritto una semplice GUI per permettere all'utente di scegliere i giochi
 disponibili sulla scheda SD (\cref{fig:gui_choice}) o, in caso non vi siano
 giochi disponibili sulla scheda SD (o non sia inserita) mostrare a schermo un
-messaggio di errore (\cref{fig:gui_err}). 
+messaggio di errore (\cref{fig:gui_err}).
+In rete sono disponibili diversi framework per sviluppare GUI su ambienti
+embedded, abbiamo però deciso di non utilizzarli ed invece di implementare
+da zero tutto data la relativa semplicità dell'interfaccia che abbiamo immaginato.
 
 \subsubsection{Font PSF}
 Questo componente software scrivere direttamente i valori dei pixel nel
