@@ -58,7 +58,6 @@ dei tasti, delle millefori (insieme a stagno, cavi e pin) per costruire i
 collegamenti in modo da minimizzare lo spazio utilizzato ed infine un case di
 GameBoy dove è stato alloggiato il tutto.
 
-%\subsection{Microcontrollore}
 La componente centrale del progetto è il microcontrollore
 \texttt{STM32F411CEU6}, prodotto da ST e montato sulla board \texttt{WeAct Black
 	Pill V2.0}. Il microcontrollore monta un core \texttt{ARM} Cortex-M4 con clock
@@ -85,7 +84,7 @@ l'esecuzione del software che abbiamo utilizzato.
 		\label{fig:weact_blackpill}
 	\end{subfigure}
 \end{figure}
-%\subsection{Schermo}
+
 Lo schermo che abbiamo utilizzato, basato sul controller \texttt{ILI9341}, è
 uno schermo LCD da $2.4"$, con una risoluzione di $320x240$ e controllo
 individuale dei pixel.
@@ -112,7 +111,6 @@ una scheda microSD al suo interno, che utilizziamo come memoria per i giochi.
 	\end{subfigure}
 \end{figure}
 
-%\subsection{Gamepad}
 L'ultimo componente hardware necessario è la plancia di gioco: per questo
 utilizziamo una board costruita appositamente per il form factor del GameBoy
 originale con $12$ tasti. Ne abbiamo utilizzati solo $8$: frecce direzionali,
@@ -126,8 +124,9 @@ originale con $12$ tasti. Ne abbiamo utilizzati solo $8$: frecce direzionali,
 	\label{fig:pcb}
 \end{figure}
 
+\subsection{Materiali}
 
-\section{Architettura}
+\subsection{Schema di collegamento}
 
 \section{Software}
 Il software necessario per il progetto si divide nei seguenti moduli: gestione
@@ -412,7 +411,7 @@ microcontrollore.
 Questi pin vengono collegati rispettivamente al cavi dell'alimentazione e
 ai pin della PCB dei tasti. 
 
-\subsection{Alimentazione}
+\subsection{Alimentazione e consumi}
 La scheda che abbiamo scelto contiene al suo interno un regolatore di tensione
 in input da $+3.52$V fino $+5.25$V, questo ci ha permesso di costruire un
 sistema di alimentazione molto semplice, composto banalmente da 3 batteria AA
@@ -429,6 +428,20 @@ Lo switch ed i cavi a cui è collegato sono stato saldati su un piccolo pezzo
 di millefori, tagliato per fare in modo che si incastri nelle incavature già
 presenti nel case del GameBoy.
 
+% Qui si parla di quanto consuma e si fa il confronto con il GB
+
+\section{Considerazioni finali}
+
+Con rammarico ci tocca ammettere di aver sottostimato la potenza necessaria per
+emulare questi videogichi, e di aver dovuto di conseguenza effettuare dei
+compromessi significativi nella realizzazione finale; primo tra tutti l'assenza
+del suono. Con il senno di poi sicuramente sceglieremmo una scheda più potente,
+oppure opteremmo per emulare una console meno potente.
+
+Nonostante questo, il fatto che molte persone a cui abbiamo fatto provare il
+progetto riuscissero a perdersi in lunghe sessioni di gioco in \texttt{Tetris}
+o \texttt{Super Mario Land} ci porta a dire di aver comunque raggiunto il
+nostro obiettivo.
 
 
 \addcontentsline{toc}{section}{References}
