@@ -378,15 +378,56 @@ Unicode: [00000030];
   \caption{Il glifo ``0'' nel font PSF \texttt{koi8r} per l'alfabeto cirillico.}
 \end{table}
 
-\section{Considerazioni finali}
-\subsection{Assemblaggio}
+\section{Assemblaggio}
 Abbiamo speso una buona parte del tempo totale della realizzazione del progetto
 a pianificare e tentare vari approcci per l'assemblaggio finale. Questa parte di
 svolgimento, infatti, si è rivelata più ostica del previsto, poiché l'insieme
-dei componenti e dei cavi non stava nel case del GB. 
+dei componenti e dei cavi non stava nel case del GB.
 
-\subsection{Potenza}
+Essendo la PCB del gamepad un clone dell'originale del GameBoy, il case è
+costruito per alloggiarla comodamente. Sfortunatamente non si può dire lo
+stesso del nostro schermo e microcontrollore, essendo componenti completamente
+diversi da quelli trovati nel GB.
+Nel GB originale l'intera circuiteria è posizionata dietro lo schermo; in
+questo spazio il nostro display e microcontrollore occupano l'intero spazio
+verticale, lasciando veramente poco spazio per i cavi.
+Il nostro primo tentativo di utilizzare dei semplici cavetti per i collegamenti
+si è rivelato fallimentare: l'alto numero di collegamenti e il loro spessore
+(anche dopo averli accorciati) rendevano difficilissimo chiudere il case.
+Inoltre, anche dopo essere riusciti a chiudere il tutto, questi cavetti erano
+proni a staccarsi dai pin durante la sessione di gioco.
 
+La soluzione è stata quella di riprodurre i collegamenti su una millefori,
+saldando dei cavetti piatti in stagno su di essa ed utilizzando dei pin header
+femmina che fungono da alloggiamento per il microcontrollore.
+Questa millefori, tagliata per essere delle stesse dimensioni dello schermo, è
+stata progettata per essere saldata sui pin dello schermo, riducendo al minimo
+lo spessore totale.
+
+[Side by side: Immagine Millefori Davanti, Immagine Millefori di Lato]
+
+Questa millefori espone dei pin maschio per l'alimentazione (5V e GND)
+e per i tasti (da PB0 a PB8), collegati direttamente ai pin del
+microcontrollore.
+Questi pin vengono collegati rispettivamente al cavi dell'alimentazione e
+ai pin della PCB dei tasti. 
+
+\subsection{Alimentazione}
+La scheda che abbiamo scelto contiene al suo interno un regolatore di tensione
+in input da $+3.52$V fino $+5.25$V, questo ci ha permesso di costruire un
+sistema di alimentazione molto semplice, composto banalmente da 3 batteria AA
+($1.5$V ciascuna) in serie per un totale di $+4.5$V in ingresso.
+
+In mezzo ai cavi che collegano batterie e microcontrollore troviamo un semplice
+interruttore, che viene posizionato sulla parte superiore del GameBoy.
+L'interruttore utilizzato è un switch SPDT, dunque a singolo polo con doppia
+mandata, ma noi utilizziamo solamente una delle due mandate.
+La scelta di utilizzare uno switch a due mandate invece di uno con singola
+mandata è semplicemente perchè i primi sono molto più economici e reperibili
+dei secondi.
+Lo switch ed i cavi a cui è collegato sono stato saldati su un piccolo pezzo
+di millefori, tagliato per fare in modo che si incastri nelle incavature già
+presenti nel case del GameBoy.
 
 
 
