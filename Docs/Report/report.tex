@@ -164,21 +164,31 @@ della scheda microSD, emulatore, interfaccia con lo schermo e una GUI per la
 selezione dei giochi.
 
 \subsection{Emulatore}
-L'emulatore che abbiamo scelto è scritto in C (originariamente per desktop),
-chiamato \texttt{peanutGB}. Questo emulatore è distribuito utilizzando un
-singolo header C contenente tutte le funzioni per l'emulazione di un GB,
-disponendo per l'utente le funzionalità base per l'esecuzione delle ROM del GB
-comprese di audio e gestione dei comandi: sarà compito dell'utente implementare
-degli \textit{hooks} (\texttt{gb\_rom\_read}, \texttt{gb\_cart\_ram\_read},
-\texttt{gb\_cart\_ram\_write}, \texttt{gb\_error}) per fornire all'emulatore
-l'interfaccia con la  ROM del gioco da giocare e la gestione degli errori. 
+Il modo in cui il nostro progetto permette di eseguire videogiochi originali
+del GameBoy è tramite l'emulazione. Un emulatore è un software che simula il
+processore ed eventuali altre periferiche in modo di eseguire
+programmi scritti per una certa architettura su un'altra architettura
+potenzialmente diversa.
+Scrivere un emulatore richiede uno studio attento dell'architettura che si
+vuole emulatore ed è al di fuori dello scopo del corso, per questo motivo
+abbiamo deciso di riutilizzare il codice di un emulatore già esistente ed
+open source.
+
+L'emulatore che abbiamo scelto è \texttt{peanutGB}, scritto in C e progettato
+per essere facilmente portato su diverse piattaforme.
+Questo emulatore è distribuito in un singolo file sorgente, non richiede
+dipendenze e separa efficacemente il cuore dell'emulatore dalle interfacce di
+input e output.
+Per integrare questo emulatore nel nostro progetto è stato dunque necessario
+implementare degli \textit{hooks} come per esempio \texttt{gb\_rom\_read},
+\texttt{gb\_cart\_ram\_write} oppure \texttt{gb\_lcd\_draw\_line}.
 
 Il porting di questo emulatore per il microcontrollore non ha richiesto
-particolari modifiche. Nonostante questo, in generale,  emulare una altra
+particolari modifiche. Nonostante questo, in generale, emulare una altra
 architettura è una operazione piuttosto costosa dal punto di vista delle
-performance, e il nostro caso non fa eccezione: allo scomo di misurare le
-performance del nostro progetto, utilizziamo la misura di fotogrammi
-per secondo (FPS). 
+performance, e il nostro caso non fa eccezione: allo scopo di misurare le
+performance del nostro progetto, utilizziamo la misura di \textit{fotogrammi
+per secondo} (FPS). 
 
 Il GB originale aggiorna il proprio schermo circa 60 volte al secondo, dunque
 idealmente per avere una emulazione a piena velocità il nostro microcontrollore
