@@ -490,7 +490,7 @@ lo spessore totale.
 Questa millefori espone dei pin maschio per l'alimentazione (5V e GND)
 e per i tasti (da PB0 a PB8), collegati direttamente ai pin del
 microcontrollore.
-Questi pin vengono collegati rispettivamente al cavi dell'alimentazione e
+Questi pin vengono collegati rispettivamente ai cavi dell'alimentazione e
 ai pin della PCB dei tasti.
 
 In mezzo ai cavi che collegano batterie e microcontrollore troviamo un semplice
@@ -499,7 +499,7 @@ L'interruttore utilizzato è uno switch SPDT, dunque a singolo polo con doppia
 mandata, ma noi utilizziamo solamente una delle due mandate. La scelta di
 utilizzare uno switch a due mandate invece di uno con singola mandata è dovuto
 al fatto che i primi sono molto più economici e reperibili dei secondi.
-Lo switch ed i cavi a cui è collegato sono stato saldati su un piccolo pezzo
+Lo switch e i cavi a cui è collegato sono stato saldati su un piccolo pezzo
 di millefori, tagliato per fare in modo che si incastri nelle incavature già
 presenti nel case del GameBoy.
 
@@ -507,10 +507,10 @@ presenti nel case del GameBoy.
 \subsection{Alimentazione e consumi}
 La scheda che abbiamo scelto contiene al suo interno un regolatore di tensione
 in input da $+3.52$V fino $+5.25$V: questo ci ha permesso di costruire un
-sistema di alimentazione molto semplice, composto banalmente da 3 batteria AA
+sistema di alimentazione molto semplice, composto banalmente da tre batterie AA
 ($1.5$V ciascuna) in serie per un totale di $+4.5$V in ingresso.
 
-Abbiamo misurato che il nostro progetto consuma circa $116$mA. La conosole
+Abbiamo misurato che il nostro progetto consuma circa $116$mAh. La console
 originale, invece, ne consuma tra i $70$ e gli $80$. Assumendo che le batterie
 in uso siano da $2500$mAh, utilizzando la formula 
 $$
@@ -519,10 +519,16 @@ $$
 otteniamo $2500/116 \approx 21$ ore come autonomia per il nostro progetto,
 mentre per il GB è $2500/70 \approx 35$.
 
+Di questi $116$mAh il consumatore principale è lo schermo retroilluminato;
+infatti disattivando la retroilluminazione il consumo crolla a circa $43$mAh.
+Di questi $43$mAh circa $22$mAh sono utilizzati dal microcontrollore e dalle sue
+periferiche attive mentre il rimanente è utilizzato dallo schermo non retroilluminato
+e dalla comunicazione con la scheda microSD.
+
 \section{Considerazioni finali}
 
 Con rammarico ci tocca ammettere di aver sottostimato la potenza necessaria per
-emulare questi videogichi, e di aver dovuto di conseguenza effettuare dei
+emulare questi videogiochi, e di aver dovuto di conseguenza effettuare dei
 compromessi significativi nella realizzazione finale; primo tra tutti l'assenza
 del suono. Con il senno di poi sicuramente sceglieremmo una scheda più potente,
 oppure opteremmo per emulare una console meno potente.
