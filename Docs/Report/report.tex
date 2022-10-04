@@ -439,19 +439,28 @@ Benché siano disponibili diversi framework per sviluppare GUI su ambienti
 embedded, abbiamo deciso di non utilizzarli implementando da zero il tutto, data
 la relativa semplicità dell'interfaccia che abbiamo immaginato.
 
+All'avvio della console l'utente vede una lista di giochi presenti sulla scheda
+microSD. Utilizzando le frecce direzionali SU e GIU e il tasto START l'utente
+può selezionare il gioco da far partire. Per ritornare alla lista dei giochi
+l'utente può spegnere e riaccendere la console.
+
 \subsubsection{Font PSF}
 Questo componente software scrive direttamente i valori dei pixel nel
 framebuffer globale. Per poter mostrare a video i nomi dei giochi disponibili è
 necessario implementare la risoluzione di font sullo schermo: per fare questo
-abbiamo utilizzato i font PSF che codificano ogni \textit{glifo} (ossia ogni
-simbolo, ad esempio una lettera) come bitmap. Nel font che abbiamo scelto, i
-simboli vengono codificati come $8$ righe di $8$ bit ciascuna: un bit $i = 0$
-indica che per mostrare il glifo, il pixel corrispondente al bit $i$ deve avere
-il colore di background dello schermo, mentre un bit $i = 1$ indica che il pixel
-deve avere il colore di foreground. Assieme con queste bitmap, per implementare
-la GUI sono bastate delle funzioni che svolgono dei  semplici calcoli sulle
-dimensione del framebuffer (ossia calcolare i rettangoli in cui andare a
-dipingere i glifi).
+abbiamo implementato un piccolo renderer di font in formato
+\textit{PC Screen Font} (PSF), un tipo di font utilizzato nei terminali Linux.
+
+I font PSF codificano ogni \textit{glifo} (ossia ogni simbolo, ad esempio una
+lettera) come bitmap. Nel font che abbiamo scelto, i simboli vengono codificati
+come $8$ righe di $8$ bit ciascuna:
+un bit $i = 0$ indica che per mostrare il glifo, il pixel corrispondente al
+bit $i$ deve avere il colore di background dello schermo, mentre un bit $i = 1$
+indica che il pixel deve avere il colore di foreground.
+
+Assieme con queste bitmap, per implementare la GUI sono bastate delle funzioni
+che svolgono dei semplici calcoli sulle dimensioni del framebuffer (ossia
+calcolare i rettangoli in cui andare a dipingere i glifi).
 \begin{table}[h]
 	\begin{verbatim}
 // Character 48
