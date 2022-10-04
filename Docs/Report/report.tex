@@ -47,15 +47,15 @@ diventava impossibile da vedere sotto scarsa luce.
 Le componenti hardware utilizzate sono tre: una scheda basata sul
 SoC \texttt{STM32F411CEU6} (\cref{fig:weact_blackpill}),
 uno schermo TFT da $2.4"$ basata sul controllore \texttt{ILI9341}
-(\cref{fig:ili9341}) ed infine una PCB per la plancia di gioco clone
+(\cref{fig:ili9341}) e infine una PCB per la plancia di gioco clone
 dell'originale utilizzata nel GameBoy (\cref{fig:pcb}).
 Non è stato necessario comprare un lettore di schede microSD perchè il
 display scelto ne integra uno al suo interno.
 
 Oltre a questi componenti attivi sono stati utilizzati un interruttore SPDT,
-dei pulsanti in plastica ed i rispettivi gommini da posizionare sopra la PCB
+dei pulsanti in plastica e i rispettivi gommini da posizionare sopra la PCB
 dei tasti, delle millefori (insieme a stagno, cavi e pin) per costruire i
-collegamenti in modo da minimizzare lo spazio utilizzato ed infine un case di
+collegamenti in modo da minimizzare lo spazio utilizzato e infine un case di
 GameBoy dove è stato alloggiato il tutto.
 
 La componente centrale del progetto è il microcontrollore
@@ -171,14 +171,14 @@ programmi scritti per una certa architettura su un'altra architettura
 potenzialmente diversa.
 Scrivere un emulatore richiede uno studio attento dell'architettura che si
 vuole emulatore ed è al di fuori dello scopo del corso, per questo motivo
-abbiamo deciso di riutilizzare il codice di un emulatore già esistente ed
+abbiamo deciso di riutilizzare il codice di un emulatore già esistente e
 open source.
 
 L'emulatore che abbiamo scelto è \texttt{peanutGB}, scritto in C e progettato
 per essere facilmente portato su diverse piattaforme.
 Questo emulatore è distribuito in un singolo file sorgente, non richiede
-dipendenze e separa efficacemente il cuore dell'emulatore dalle interfacce di
-input e output.
+dipendenze e separa efficacemente il cuore dell'emulatore dalle interfacce
+d'input e output.
 Per integrare questo emulatore nel nostro progetto è stato dunque necessario
 implementare degli \textit{hooks} come per esempio \texttt{gb\_rom\_read},
 \texttt{gb\_cart\_ram\_write} oppure \texttt{gb\_lcd\_draw\_line}.
@@ -200,21 +200,21 @@ fine vita della console hanno framerate più bassi, intorno a $35$ FPS;
 in generale, tuttavia, la gran parte dei giochi rimane comunque giocabile. 
 
 Per non compromettere le performance ulteriormente, abbiamo deciso di rinunciare
-all'audio: seppur il DMA ci avrebbe permesso di mandare l'audio ad uno speaker
+all'audio: seppur il DMA ci avrebbe permesso di mandare l'audio a uno speaker
 senza intaccare troppo le performance, emulare il processore audio del GameBoy e
 generare i samples da mandare via PWM sarebbe stato molto dispendioso.
 
 \subsubsection{Colori}
 Originariamente, il GB disegnava esclusivamente in \textit{grayscale}: ogni
-oggetto (sfondo, dialoghi, sprites, transizioni...) è assegnato ad uno dei $4$
+oggetto (sfondo, dialoghi, sprites, transizioni...) è assegnato a uno dei $4$
 \textit{layer} che il GB offre, che viene ulteriormente diviso in $4$
 \textit{variables}, come mostrato in \cref{table:gb_colors}.
 Con il rilascio del \textit{Game Boy Color}, \textit{Nintendo} preparò una serie
 di \textit{palette} di colori per permettere ai giochi rilasciati in bianco e nero
-di diventare a colori. Queste palette sono semplicemente 4 colori in formato BGR565
-per ognuno dei 4 layer supportati.
+di diventare a colori. Queste palette sono semplicemente quattro colori in formato BGR565
+per ognuno dei quattro layer supportati.
 
-Abbiamo estratto alcune palette dei giochi più popolari ed implementato questo
+Abbiamo estratto alcune palette dei giochi più popolari e implementato questo
 meccanismo di conversione dei colori grayscale nel corrispondente colore della
 palette del layer del momento.
 
@@ -270,16 +270,10 @@ richiesto più recentemente in cima alla lista e contestualmente rimuovere quell
 richiesto meno recentemente.
 
 Tramite misurazioni empiriche abbiamo ottenuto le performance migliori
-utilizzando una dimensione dei blocchi di $512$ bytes, riservando $20$KB di
-memoria RAM per la cache (dunque fino a $40$ blocchi caricati temporanemente).
+utilizzando una dimensione dei blocchi di $512$ byte, riservando $20$KB di
+memoria RAM per la cache (dunque fino a $40$ blocchi caricati temporaneamente).
 Questo meccanismo di caching è un modulo fondamentale; senza di esso l'esecuzione
 dei giochi diventa talmente lenta al punto da essere inaccettabile.
-
-%\subsubsection{Scrittura dei salvataggi}
-%Durante l'esecuzione dei giochi, gli utenti possono salvare i propri progressi
-%in dei file appositi gestiti dall'emulatore. Invece di rallentare l'esecuzione ad
-%ogni salvataggio,  abbiamo deciso di utilizzare una coda per scrivere i
-%salvataggi in blocco. 
 
 \subsection{Driver ILI9341}
 Il chip ILI9341 è un driver per display a cristalli liquidi a bassa risoluzione
@@ -299,7 +293,7 @@ interfaccia parallela è dunque obbligata.
 
 Sfortunatamente l'interfacciamento via SPI è molto più popolare di quello
 parallelo e le poche librerie compatibili con microcontrollori STM32 funzionano
-solamente con il primo tipo di interfaccia.
+solamente con il primo tipo d'interfaccia.
 È stato dunque necessario scrivere un driver apposito leggendo il datasheet
 ufficiale\cite{ili9341} e il codice di driver per altri microcontrollori.
 
@@ -505,7 +499,7 @@ Inoltre, anche dopo essere riusciti a chiudere il tutto, questi cavetti erano
 proni a staccarsi dai pin durante la sessione di gioco.
 
 La soluzione è stata quella di riprodurre i collegamenti su una millefori,
-saldando dei cavetti piatti in stagno su di essa ed utilizzando dei pin header
+saldando dei cavetti piatti in stagno su di essa e utilizzando dei pin header
 femmina che fungono da alloggiamento per il microcontrollore.
 Questa millefori, tagliata per essere delle stesse dimensioni dello schermo, è
 stata progettata per essere saldata sui pin dello schermo, riducendo al minimo
