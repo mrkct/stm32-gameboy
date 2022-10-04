@@ -6,7 +6,7 @@
 #include "config.h"
 #include "display/framebuffer.h"
 
-#define LINES_PADDING 2
+#define LINES_PADDING 3
 #define COLS_PADDING 2
 #define GAMES_PER_PAGE (SCREEN_LINES - LINES_PADDING)
 #define MAX_GAME_LEN (SCREEN_COLUMNS - COLS_PADDING)
