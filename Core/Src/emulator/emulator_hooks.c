@@ -302,7 +302,7 @@ void StartEmulator(struct ILI9341_t *display, struct GameChoice *choice,
       gb_tick_rtc(&gb);
     }
 
-    #ifdef DEBUG_SHOW_FPS
+    #if DEBUG_SHOW_FPS
     PutChar(
       framebuffer,
       '0' + (fps_counts[fps_counts_pos] / 10) % 10,

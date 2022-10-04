@@ -4,7 +4,7 @@
 #include "stm32f4xx_hal.h"
 
 #define DEBUG_JUMP_TO_GAME 0
-#define DEBUG_SHOW_FPS     1
+#define DEBUG_SHOW_FPS     0
 
 // Display pins
 // WARNING: The function to move the framebuffer to the display
