@@ -274,93 +274,109 @@ dei giochi diventa talmente lenta al punto da essere inaccettabile.
 %salvataggi in blocco. 
 
 \subsection{Driver ILI9341}
-Per interfacciarsi con lo schermo è stato necessario scrivere un driver
-apposito: per questa componente in particolare abbiamo speso buona parte del
-tempo necessario per il completamento del progetto. Lo schermo \texttt{ILI9341}
-dispone per l'utilizzatore $5$ pin di controllo: \texttt{LCD\_RD},
-\texttt{LCD\_WR}, \texttt{LCD\_RS}, \texttt{LCD\_CS}, ed \texttt{LCD\_RST}.
+Il chip ILI9341 è un driver per display a cristalli liquidi a bassa risoluzione
+molto popolare grazie al suo basso costo. La comunicazione con questo driver
+può avvenire tramite due diverse interfacce: via SPI oppure tramite una
+interfaccia parallela ad 8 bit.
+L'interfaccia SPI richiede meno pin ma è anche più lenta nella comunicazione
+dato che utilizza un protocollo seriale, al contrario l'interfaccia parallela
+è più veloce ma richiede anche molti più pin.
+La decisione di quale interfaccia utilizzare è presa dal produttore del
+display che espone solamente alcuni dei pin del circuito integrato.
+
+Nel nostro caso dobbiamo mostrare dei videogiochi sullo schermo e dunque
+abbiamo bisogno di aggiornare l'immagine sullo schermo molto velocemente
+(circa 60 volte al secondo), la scelta di un display che espone una
+interfaccia parallela è dunque obbligata.
+
+Sfortunatamente l'interfacciamento via SPI è molto più popolare di quello
+parallelo e le poche librerie compatibili con microcontrollori STM32 funzionano
+solamente con il primo tipo di interfaccia.
+È stato dunque necessario scrivere un driver apposito leggendo il datasheet
+ufficiale\cite{ili9341} e il codice di driver per altri microcontrollori.
+
+\subsubsection{Ad alto livello}
+Lo schermo, nella versione con interfacciamento parallelo ad 8 bit, dispone
+per l'utilizzatore $5$ pin di controllo: \texttt{LCD\_RD}, \texttt{LCD\_WR},
+\texttt{LCD\_RS}, \texttt{LCD\_CS}, ed \texttt{LCD\_RST}.
 Questi pin vengono utilizzati per modificare lo stato della scheda, come
 descritto nella documentazione ufficiale.
-\begin{table}[h]
-	\begin{verbatim}
+Oltre a essi troviamo altri $8$ pin (\texttt{LCD\_D0}, \texttt{LCD\_D1}, ...,
+\texttt{LCD\_D7}) su cui passano i dati scambiati tra schermo e utilizzatore.
 
-  int ILI9341_Init(struct ILI9341_t *ili, struct ILI9341_Pin_t D7,
-                 struct ILI9341_Pin_t D6, struct ILI9341_Pin_t D5,
-                 struct ILI9341_Pin_t D4, struct ILI9341_Pin_t D3,
-                 struct ILI9341_Pin_t D2, struct ILI9341_Pin_t D1,
-                 struct ILI9341_Pin_t D0, struct ILI9341_Pin_t RST,
-                 struct ILI9341_Pin_t CS, struct ILI9341_Pin_t RS,
-                 struct ILI9341_Pin_t WR, struct ILI9341_Pin_t RD);
+Il nostro driver implementa solamente un piccolo sottoinsieme delle operazioni
+supportate dal chip ILI9341, oltre a una funzione extra per inviare
+una immagine ingrandita.
+Quest'ultima funzione è implementata all'interno del driver per motivi di
+performance discussi più avanti.
 
-  [...]
-
-  void ILI9341_DrawFramebufferScaled(struct ILI9341_t *ili, 
-                 uint16_t framebuffer[]);
-  \end{verbatim}
-	\caption{}
-	\label{table:driver_ili}
-\end{table}
-\subsubsection{Ad alto livello}
-Nella \cref{table:driver_ili} mostriamo parte delle funzioni che, ad alto
-livello, il driver implementa: ovviamente, \texttt{ILI9341\_Init} è utilizzata
-per inizializzare l'unità; \texttt{ILI9341\_DrawFramebufferScaled}, anch'essa
-abbastanza auto-esplicativa, è tra le funzioni del driver più utilizzate dal
-codice utente per disegnare sullo schermo. Originariamente il GB mostrava uno
-schermo $160\times144$: tra le migliorie che abbiamo implementate vi è anche lo
-scaling dell'immagine dello schermo, che è aumentata a $320\times240$.
-
-Esaminiamo ora l'implementazione di queste due funzioni; una struct mantiene lo
-stato interno dei collegamenti tra microcontrollore e scheda, e tramite le
-procedure offerte dal meccanismo GPIO di \texttt{HAL} possiamo impostare lo
-stato dei pin dello schermo.
+Per una lista dettagliata delle operazioni implementate si rimanda al file
+sorgente al percorso
+\texttt{display/ili9341.h}.
 
 \subsubsection{Inizializzazione}
-La funzione di inizializzazione è parametrizzata dagli identificatori dei pin
+La funzione d'inizializzazione è parametrizzata dagli identificatori dei pin
 GPIO del microcontrollore che vengono collegati ai pin della scheda: una volta
 inizializzata la struct che mantiene le corrispondenze di questi collegamenti,
-si procede ad inizializzare i pin di controllo della scheda ( \texttt{LCD\_RD},
+si procede a inizializzare i pin di controllo della scheda (\texttt{LCD\_RD},
 \texttt{LCD\_WR}, \texttt{LCD\_RS}, \texttt{LCD\_CS}, ed \texttt{LCD\_RST}) come
-pin di output tramite le funzioni messe a disposizione da HAL. Diamo quindi uno
-stato iniziale alla scheda prima di procedere alla sequenza di inizializzazione:
-il pin \texttt{LCD\_CS} è impostato come \textit{attivo} (quindi \textit{low},
-come da richieste della scheda). Questo significa che la scheda è pronta a
-ricevere dei comandi inviati dal microcontrollore. Si imposta quindi come
-disabilitato (ossia \textit{high}) il pin \texttt{LCD\_RST}: questo pin forza la
-scheda ad eseguire il reset, pertanto durante tutta l'esecuzione (o finché non
-si desidera resettare lo schermo) dovrà rimanere disabilitato.
-Si impostano disablitati i pin \texttt{LCD\_WR} e \texttt{LCD\_RD}; infine si
-imposta come attivo (quindi \textit{low}) il pin \texttt{LCD\_CD}, che sta a
-significare che la scheda riceverà sui pin dati un comando.
+pin di output tramite le funzioni messe a disposizione dalla HAL.
 
-L'effettiva sequenza di inizializzazione della scheda comporta l'attivazione del
-pin \texttt{LCD\_RST} seguito da un delay  e la seguente disattivazione dello
-stesso pin seguito da un ulteriore delay.
+Diamo quindi uno stato iniziale alla scheda prima di mandare la sequenza
+d'inizializzazione al display:
+il pin \texttt{LCD\_CS} è impostato come \textit{attivo} (quindi \textit{low},
+il chip ILI9341 è attivo basso).
+Si impostano disabilitati i pin \texttt{LCD\_WR} e \texttt{LCD\_RD}.
+
+Il pin \texttt{LCD\_RST} provoca un reset dello stato interno del display quando
+è attivo, per questo motivo all'avvio attiviamo e disattiviamo questo pin per
+resettare la scheda a uno stato conosciuto.
+Questo pin dovrà rimanere disabilitato per tutta l'esecuzione
+(a meno che non si desideri resettare lo schermo).
+
+Una volta che la scheda ha raggiunto uno stato conosciuto è necessario inviare
+la \textit{sequenza d'inizializzazione}: questa è semplicemente una sequenza
+di comandi per attivare lo schermo(nello stato iniziale è spento in
+modalità \textit{sleep}) e configurare parametri come il formato di scambio
+dei pixel e l'endianness.
+Descrivere nel dettaglio tutti i comandi mandati in questa sequenza sarebbe
+lungo e poco interessante, si rimanda dunque al codice \footnote{
+	L'invio di questa sequenza è fatto nella funzione
+	\texttt{ILI9341\_SendInitializationSequence} del file
+	\texttt{display/ili9341.c}
+}e al datasheet \cite{ili9341} per approfondimenti.
 
 \subsubsection{Disegnare sullo schermo}
-La funzione \texttt{ILI9341\_DrawFramebufferScaled} utilizza l'interfaccia della
-scheda e il protocollo descritto nella documentazione per disegnare sullo
-schermo. Nella nostra implementazione abbiamo scelto di utilizzare un framebuffer
-globale sul quale emulatore e GUI disegnano.
+Disegnare sullo schermo vuol dire mandare dei comandi appositi al display per
+copiare un array di pixel, detto \textit{framebuffer}, sopra il framebuffer
+interno del display a una determinata posizione.
+Nella nostra implementazione utilizziamo un singolo framebuffer globale sulla
+quale emulatore e GUI disegnano.
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[scale=0.8]{figures/wr_cycle.png}
-	\caption{}
+	\caption{
+		Rappresentazione dello stato dei pin di controllo sul display durante
+		l'invio di un comando con $1$ byte di dati
+	}
 	\label{fig:ili_wr_cycle}
 \end{figure}
 
-Per implementare il protocollo, la funzione imposta lo schermo per
-la ricezione di comandi e invia inizialmente una \texttt{nop}, con lo scopo di
-sincronizzare scheda e microcontrollore.
+Prima di cominciare l'operazione d'invio è consigliato inviare inizialmente
+un comando \texttt{nop} per terminare qualunque potenziale comando rimasto in
+sospeso sul chip ILI9341. Questo caso può avvenire se il microcontrollore e
+il display non fossero più sincronizzati tra di loro.
 
 Il protocollo della scheda prevede che il client, per disegnare sullo schermo,
 imposti inizialmente l'area sulla quale vuole disegnare.
-L'utente dispone dei comandi \texttt{COLUMN\_ADDRESS\_SET} e
+L'utente usa i due comandi \texttt{COLUMN\_ADDRESS\_SET} e
 \texttt{PAGE\_ADDRESS\_SET}: il primo comando è utilizzato per specificare le
 due colonne destra e sinistra che delimitano l'area in cui si vuole disegnare, e
 simmetricamente fa il secondo comando; entrambi i comandi richiedono quattro
-parametri da $8$bit che indicano i $2+2$ byte necessari per identificare righe e
-colonne. Una volta specificata l'area, l'utente utilizzerà il comando
+parametri da $8$ bit ciascuno che indicano i $2+2$ byte necessari per
+identificare righe e colonne.
+Una volta specificata l'area, l'utente utilizzerà il comando
 \texttt{MEMORY\_WRITE} per inviare alla scheda i dati che descrivono il disegno.
 Ogni pixel dello schermo è descritto da due byte in formato BGR565 e verrà
 inviato seguendo il \textit{write cycle} come descritto in
@@ -375,11 +391,24 @@ operazioni di \texttt{mask} e \texttt{shift}: questo ci permette di ottenere
 prestazioni migliori evitando overhead non indifferenti.
 
 \paragraph{Scaling}
+I display basati su ILI9341 hanno risoluzione $320x240$ e utilizzano $2$ byte
+per ogni pixel. Facendo un breve calcolo dunque un framebuffer per l'intero
+schermo occuperebbe $320 \cdot 240 \cdot 2 = 153KB$; non potrebbe mai essere
+contenuto nei $128KB$ di SRAM del nostro microcontrollore.
+Per questo motivo abbiamo deciso di tenere in memoria un framebuffer
+più piccolo ma di effettuare uno scaling dell'immagine al momento dell'invio
+dei pixel al display. 
+
 L'algoritmo di scaling che abbiamo implementato cerca di scalare l'immagine
 prodotta da GUI ed emulatore senza sacrificare le performance ed è pertanto
 relativamente semplice: aggiungiamo un pixel ogni due, sia in verticale che in
 orizzontale; il nuovo pixel avrà come colore la media dei colori dei due pixel
 che lo hanno generato.
+
+La dimensione del framebuffer in memoria è di appena $160x144$ pixel, la
+stessa risoluzione del display del GameBoy, ma l'immagine scalata che viene
+mandata al display è più grande ed ha dimensioni $240x216$ pixel, cioè uno
+scaling del $1.5$x.
 
 \subsection{GUI}
 \begin{figure}[h]
