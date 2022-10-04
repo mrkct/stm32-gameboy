@@ -232,18 +232,26 @@ palette del layer del momento.
 	\label{table:gb_colors}
 \end{table}
 
-\subsection{Scheda SD}
+\subsection{Scheda microSD}
 Fisicamente, la scheda microSD è inserita nello schermo ILI9341, che dispone di
 un'apposita porta; per interfacciarci con essa, abbiamo deciso di formattare la
-scheda con un filesystem FAT e utilizzare, come descritto in \cite{stm1721}, una
-libreria per l'interazione con tali filesystem astratta dal livello di fisico di
-I/O; abbiamo pertanto utilizzato un'ulteriore libreria per interfacciarci con
-la scheda SD: questo meccanismo viene implementato utilizzando i pin esposti
-dallo schermo e direttamente collegati alla microSD (\texttt{SD\_SCK},
-\texttt{SD\_DO}, \texttt{SD\_DI}, \texttt{SD\_SS}) che permettono l'utilizzo
-dell'interfaccia seriale della scheda.
+scheda con il filesystem FAT32 e utilizzare due librerie:
+\textit{cudeide-sd-card}, per la comunicazione a basso livello con la scheda
+microSD, e \textit{FATFS} per l'interazione con il filesystem.
+Il nostro lavoro dunque è stato quello d'integrarle nel progetto e di scrivere
+delle piccole funzioni per collegare le due librerie.
 
-\subsubsection{Caching dei settori}
+La scelta di utilizzare \textit{FatFS} è stata influenzata dal fatto che
+\textit{ST} la consiglia, al punto che questa è disponibile da includere
+direttamente da \textit{STM32CubeIDE}. 
+
+Dato che abbiamo riservato l'intera porta GPIOA all'utilizzo dello schermo,
+la comunicazione con la scheda microSD avviene via SPI sul bus SPI2,
+utilizzando i pin PB10, PB14 e PB15 che vengono collegati rispettivamente
+ai pin sullo schermo \texttt{SD\_SCK}, \texttt{SD\_DO} e \texttt{SD\_DI}.
+Il bus è configurato in modalità \textit{Full Duplex Master}.
+
+\subsubsection{Caching dei blocchi}
 Abbiamo osservato che durante l'esecuzione la lettura dei blocchi della SD
 costituiva un collo di bottiglia per la performance, tanto da rendere
 impossibile l'utilizzo della console. Sfortunatamente la grande maggioranza
