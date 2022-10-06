@@ -10,4 +10,3 @@ compile_commands.json
 **/*.log
 **/*.out
 **/*.run.xml
-**/report.pdf
