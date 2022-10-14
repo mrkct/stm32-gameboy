@@ -1,6 +1,6 @@
 # STM32 GameBoy
 
-**This project was built as a collaborative work by [Marco Cutecchia](https://github.com/mrkct) and [Edoardo Marangoni](https://github.com/eccma) for the course "Progettazione di Sistemi Operativi" at UNIMI.**
+**This project was built as a collaborative work by [Marco Cutecchia](https://github.com/mrkct) and [Edoardo Marangoni](https://github.com/ecmma) for the course "Progettazione di Sistemi Operativi" at UNIMI.**
 
 <img align="right" width="50%" src="Docs/gb.jpeg">
 
